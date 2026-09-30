@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IR Pipeline — CLI Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ===== CSS Reset & Variables ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2236;
+            --bg-card-hover: #1e2844;
+            --bg-input: #0d1425;
+            --border-color: #2a3654;
+            --border-focus: #6366f1;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-indigo: #6366f1;
+            --accent-indigo-hover: #818cf8;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #a855f7;
+            --gradient-1: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+            --gradient-2: linear-gradient(135deg, #0ea5e9, #6366f1);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.5);
+            --shadow-glow: 0 0 30px rgba(99,102,241,0.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===== Background Pattern ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 600px 400px at 20% 20%, rgba(99,102,241,0.08), transparent),
+                radial-gradient(ellipse 500px 350px at 80% 60%, rgba(168,85,247,0.06), transparent),
+                radial-gradient(ellipse 400px 300px at 50% 90%, rgba(6,182,212,0.05), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== Layout ===== */
+        .app {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        /* ===== Header ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .header__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            background: rgba(99,102,241,0.12);
+            border: 1px solid rgba(99,102,241,0.25);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-indigo-hover);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .header__badge::before {
+            content: '⚡';
+        }
+        .header__title {
+            font-size: 40px;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .header__subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* ===== Section ===== */
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin-bottom: 20px;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+        .section:hover {
+            border-color: rgba(99,102,241,0.3);
+            box-shadow: var(--shadow-glow);
+        }
+        .section__header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .section__icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .section__icon--retriever { background: rgba(99,102,241,0.15); }
+        .section__icon--model { background: rgba(168,85,247,0.15); }
+        .section__icon--dataset { background: rgba(16,185,129,0.15); }
+        .section__icon--metrics { background: rgba(245,158,11,0.15); }
+        .section__icon--params { background: rgba(6,182,212,0.15); }
+        .section__icon--output { background: rgba(244,63,94,0.15); }
+        .section__icon--candidate { background: rgba(251,146,60,0.15); }
+        .section__icon--index { background: rgba(6,182,212,0.15); }
+
+        .section__title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .section__desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== Retriever Cards ===== */
+        .retriever-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+        .retriever-card {
+            position: relative;
+            padding: 16px 14px;
+            background: var(--bg-input);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition);
+            text-align: center;
+        }
+        .retriever-card:hover {
+            border-color: rgba(99,102,241,0.4);
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+        .retriever-card.active {
+            border-color: var(--accent-indigo);
+            background: rgba(99,102,241,0.08);
+            box-shadow: 0 0 20px rgba(99,102,241,0.2);
+        }
+        .retriever-card__emoji {
+            font-size: 28px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .retriever-card__name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .retriever-card__tag {
+            font-size: 10px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 100px;
+            display: inline-block;
+        }
+        .retriever-card__tag--sparse { background: rgba(16,185,129,0.15); color: var(--accent-emerald); }
+        .retriever-card__tag--dense { background: rgba(99,102,241,0.15); color: var(--accent-indigo-hover); }
+        .retriever-card__tag--multi { background: rgba(168,85,247,0.15); color: var(--accent-purple); }
+        .retriever-card__tag--rerank { background: rgba(244,63,94,0.15); color: var(--accent-rose); }
+        .retriever-card__tag--hybrid { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+
+        /* ===== Form Elements ===== */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-row--single {
+            grid-template-columns: 1fr;
+        }
+        .form-row--triple {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-label .required {
+            color: var(--accent-rose);
+            margin-left: 2px;
+        }
+        .form-input, .form-select {
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            outline: none;
+            width: 100%;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent-indigo);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+        }
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+        .form-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ===== Metric Chips ===== */
+        .metric-builder {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .metric-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 14px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-color);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+            user-select: none;
+        }
+        .metric-chip:hover {
+            border-color: rgba(245,158,11,0.4);
+            color: var(--text-primary);
+        }
+        .metric-chip.active {
+            border-color: var(--accent-amber);
+            background: rgba(245,158,11,0.1);
+            color: var(--accent-amber);
+        }
+        .metric-custom-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .metric-custom-row .form-input {
+            flex: 1;
+        }
+        .btn-add-metric {
+            padding: 10px 16px;
+            background: rgba(245,158,11,0.12);
+            border: 1.5px solid rgba(245,158,11,0.3);
+            border-radius: var(--radius-sm);
+            color: var(--accent-amber);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+        .btn-add-metric:hover {
+            background: rgba(245,158,11,0.2);
+        }
+
+        /* ===== Checkbox ===== */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .checkbox-group input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+        }
+        .checkbox-group input[type="checkbox"]:checked {
+            background: var(--accent-indigo);
+            border-color: var(--accent-indigo);
+        }
+        .checkbox-group input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .checkbox-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Conditional Sections ===== */
+        .conditional {
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        .conditional.visible {
+            display: block;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Output Section ===== */
+        .output-section {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-indigo);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin-top: 32px;
+            box-shadow: 0 0 40px rgba(99,102,241,0.1);
+            position: relative;
+        }
+        .output-section__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .output-section__title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .output-section__title::before {
+            content: '🚀';
+            font-size: 20px;
+        }
+        .btn-copy {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all var(--transition);
+            box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+        }
+        .btn-copy:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+        }
+        .btn-copy:active {
+            transform: translateY(0);
+        }
+        .btn-copy.copied {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+        }
+        .output-code {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--accent-emerald);
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow-x: auto;
+            min-height: 60px;
+        }
+        .output-placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* ===== Validation ===== */
+        .validation-msg {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: rgba(244,63,94,0.08);
+            border: 1px solid rgba(244,63,94,0.25);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--accent-rose);
+            margin-bottom: 16px;
+        }
+        .validation-msg.visible {
+            display: flex;
+        }
+        .validation-msg::before {
+            content: '⚠';
+        }
+
+        /* ===== Model Preset Cards ===== */
+        .model-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .model-preset {
+            padding: 6px 14px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-color);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .model-preset:hover {
+            border-color: rgba(168,85,247,0.4);
+            color: var(--text-primary);
+        }
+        .model-preset.active {
+            border-color: var(--accent-purple);
+            background: rgba(168,85,247,0.1);
+            color: var(--accent-purple);
+        }
+
+        /* ===== Index Mode Components ===== */
+        .index-mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .index-mode-card {
+            padding: 14px 16px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            user-select: none;
+        }
+        .index-mode-card:hover {
+            border-color: rgba(6,182,212,0.4);
+            background: var(--bg-card-hover);
+            transform: translateY(-1px);
+        }
+        .index-mode-card.active {
+            border-color: var(--accent-cyan);
+            background: rgba(6,182,212,0.1);
+            box-shadow: 0 0 16px rgba(6,182,212,0.2);
+        }
+        .index-mode-card__icon {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .index-mode-card__title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+        .index-mode-card__desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+
+        /* Index Context Banner */
+        .index-context-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 18px;
+            background: rgba(6,182,212,0.08);
+            border: 1px solid rgba(6,182,212,0.25);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: #67e8f9;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .index-context-banner code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a5f3fc;
+        }
+        .index-context-banner strong {
+            color: #e0f2fe;
+        }
+        .index-context-banner.warning {
+            background: rgba(245,158,11,0.08);
+            border-color: rgba(245,158,11,0.25);
+            color: #fcd34d;
+        }
+        .index-context-banner.warning code {
+            color: #fef08a;
+        }
+        .index-context-banner.warning strong {
+            color: #fef3c7;
+        }
+        .index-context-banner__icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .btn-auto-suggest {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: rgba(6,182,212,0.12);
+            border: 1px solid rgba(6,182,212,0.3);
+            border-radius: var(--radius-sm);
+            color: var(--accent-cyan);
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-left: auto;
+        }
+        .btn-auto-suggest:hover {
+            background: rgba(6,182,212,0.22);
+            border-color: var(--accent-cyan);
+            color: #a5f3fc;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 640px) {
+            .app { padding: 24px 16px 60px; }
+            .header__title { font-size: 28px; }
+            .form-row { grid-template-columns: 1fr; }
+            .form-row--triple { grid-template-columns: 1fr; }
+            .retriever-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* ===== Divider ===== */
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- Header -->
+    <header class="header">
+        <div class="header__badge">CLI Generator</div>
+        <h1 class="header__title">IR Pipeline Command Builder</h1>
+        <p class="header__subtitle">Tạo lệnh CLI cho hệ thống Information Retrieval một cách trực quan — không cần nhớ cú pháp.</p>
+    </header>
+
+    <!-- 1. Retriever Selection -->
+    <section class="section" id="sec-retriever">
+        <div class="section__header">
+            <div class="section__icon section__icon--retriever">🔍</div>
+            <div>
+                <div class="section__title">Retriever</div>
+                <div class="section__desc">Chọn phương pháp truy xuất tài liệu</div>
+            </div>
+        </div>
+        <div class="retriever-grid">
+            <div class="retriever-card" data-retriever="bm25" onclick="selectRetriever('bm25')">
+                <span class="retriever-card__emoji">📝</span>
+                <div class="retriever-card__name">BM25</div>
+                <span class="retriever-card__tag retriever-card__tag--sparse">Sparse</span>
+            </div>
+            <div class="retriever-card" data-retriever="dense" onclick="selectRetriever('dense')">
+                <span class="retriever-card__emoji">🧠</span>
+                <div class="retriever-card__name">Dense</div>
+                <span class="retriever-card__tag retriever-card__tag--dense">Single-Vector</span>
+            </div>
+            <div class="retriever-card" data-retriever="late-interaction" onclick="selectRetriever('late-interaction')">
+                <span class="retriever-card__emoji">🔗</span>
+                <div class="retriever-card__name">Late Interaction</div>
+                <span class="retriever-card__tag retriever-card__tag--multi">Multi-Vector</span>
+            </div>
+            <div class="retriever-card" data-retriever="cross-encoder" onclick="selectRetriever('cross-encoder')">
+                <span class="retriever-card__emoji">🎯</span>
+                <div class="retriever-card__name">Cross-Encoder</div>
+                <span class="retriever-card__tag retriever-card__tag--rerank">2-Stage Rerank</span>
+            </div>
+            <div class="retriever-card" data-retriever="hybrid" onclick="selectRetriever('hybrid')">
+                <span class="retriever-card__emoji">⚡</span>
+                <div class="retriever-card__name">Hybrid</div>
+                <span class="retriever-card__tag retriever-card__tag--hybrid">BM25 + Dense</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Model Selection (conditional) -->
+    <section class="section conditional" id="sec-model">
+        <div class="section__header">
+            <div class="section__icon section__icon--model">🤖</div>
+            <div>
+                <div class="section__title">Model</div>
+                <div class="section__desc" id="model-desc">Chọn mô hình hoặc nhập HuggingFace model ID</div>
+            </div>
+        </div>
+        <div class="model-presets" id="model-presets"></div>
+        <div class="form-row form-row--single">
+            <div class="form-group">
+                <label class="form-label">Model ID <span class="required">*</span></label>
+                <input type="text" class="form-input" id="input-model" placeholder="Nhập HuggingFace model name hoặc đường dẫn..." oninput="generate()">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Model Type</label>
+                <select class="form-select" id="input-model-type" onchange="generate()">
+                    <option value="">Tự động nhận diện</option>
+                    <option value="single-vector">single-vector</option>
+                    <option value="multi-vector">multi-vector</option>
+                    <option value="cross-encoder">cross-encoder</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Device</label>
+                <select class="form-select" id="input-device" onchange="generate()">
+                    <option value="auto">auto (khuyến nghị)</option>
+                    <option value="cuda">cuda (GPU)</option>
+                    <option value="cpu">cpu</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2b. Cross-Encoder: Candidate Retriever Settings -->
+    <section class="section conditional" id="sec-candidate">
+        <div class="section__header">
+            <div class="section__icon section__icon--candidate">🏗️</div>
+            <div>
+                <div class="section__title">Stage 1 — Candidate Retriever</div>
+                <div class="section__desc">Chọn retriever tầng 1 để lọc ứng viên trước khi Cross-Encoder rerank</div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Candidate Retriever</label>
+                <select class="form-select" id="input-candidate-retriever" onchange="onCandidateRetrieverChange(); generate()">
+                    <option value="bm25">BM25 (mặc định, nhanh)</option>
+                    <option value="dense">Dense (cần model riêng)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Candidate Top-K</label>
+                <input type="number" class="form-input" id="input-candidate-top-k" value="100" min="1" oninput="generate()">
+                <span class="form-hint">Số ứng viên tầng 1 đưa vào Cross-Encoder</span>
+            </div>
+        </div>
+
+        <!-- Candidate model (only for dense) -->
+        <div class="conditional" id="sec-candidate-model">
+            <div class="divider"></div>
+            <div class="model-presets" id="candidate-model-presets"></div>
+            <div class="form-row form-row--single">
+                <div class="form-group">
+                    <label class="form-label">Candidate Model ID <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="input-candidate-model" placeholder="Model embedding cho Stage 1 Dense..." oninput="generate()">
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Stage 2 Batch Size</label>
+                <input type="number" class="form-input" id="input-batch-size-stage2" value="32" min="1" oninput="generate()">
+                <span class="form-hint">Batch cho Cross-Encoder scoring</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Stage 1 Batch Size</label>
+                <input type="number" class="form-input" id="input-candidate-batch-size" value="" min="1" placeholder="Mặc định = Stage 2 batch" oninput="generate()">
+                <span class="form-hint">Batch cho candidate retriever (tùy chọn)</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Dataset -->
+    <section class="section" id="sec-dataset">
+        <div class="section__header">
+            <div class="section__icon section__icon--dataset">📂</div>
+            <div>
+                <div class="section__title">Dataset</div>
+                <div class="section__desc">Đường dẫn đến thư mục chứa queries.jsonl, documents.jsonl, qrels.tsv</div>
+            </div>
+        </div>
+        <div class="model-presets" id="dataset-presets">
+            <span class="model-preset" onclick="selectDataset('data/toy')">data/toy</span>
+            <span class="model-preset" onclick="selectDataset('data/fiqa/test')">data/fiqa/test</span>
+            <span class="model-preset" onclick="selectDataset('data/fiqa/dev')">data/fiqa/dev</span>
+            <span class="model-preset" onclick="selectDataset('data/fiqa/train')">data/fiqa/train</span>
+            <span class="model-preset" onclick="selectDataset('data/fiqa-vn')">data/fiqa-vn</span>
+        </div>
+        <div class="form-row form-row--single">
+            <div class="form-group">
+                <label class="form-label">Dataset Path <span class="required">*</span></label>
+                <input type="text" class="form-input" id="input-dataset" placeholder="vd: data/fiqa/test" oninput="generate()">
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. FAISS Index Persistence (conditional for dense, hybrid, cross-encoder) -->
+    <section class="section conditional" id="sec-index">
+        <div class="section__header">
+            <div class="section__icon section__icon--index">🗄️</div>
+            <div>
+                <div class="section__title">FAISS Index Persistence</div>
+                <div class="section__desc">Lưu hoặc tải index FAISS offline — tăng tốc đáng kể, không cần encode lại corpus</div>
+            </div>
+        </div>
+
+        <!-- Dynamic Context Alert -->
+        <div class="index-context-banner" id="index-context-banner">
+            <span class="index-context-banner__icon" id="index-banner-icon">💡</span>
+            <div id="index-banner-text">Áp dụng lưu/tải FAISS index cho Dense retrieval.</div>
+        </div>
+
+        <!-- Mode Selection Cards -->
+        <div class="index-mode-grid">
+            <div class="index-mode-card active" data-index-mode="none" onclick="setIndexMode('none')">
+                <span class="index-mode-card__icon">🚫</span>
+                <div>
+                    <div class="index-mode-card__title">Không lưu/load</div>
+                    <div class="index-mode-card__desc">Build mới mỗi lần chạy</div>
+                </div>
+            </div>
+            <div class="index-mode-card" data-index-mode="save" onclick="setIndexMode('save')">
+                <span class="index-mode-card__icon">💾</span>
+                <div>
+                    <div class="index-mode-card__title">Lưu Index (--save-index)</div>
+                    <div class="index-mode-card__desc">Lưu FAISS sau khi build</div>
+                </div>
+            </div>
+            <div class="index-mode-card" data-index-mode="load" onclick="setIndexMode('load')">
+                <span class="index-mode-card__icon">📂</span>
+                <div>
+                    <div class="index-mode-card__title">Tải Index (--load-index)</div>
+                    <div class="index-mode-card__desc">Dùng lại index có sẵn</div>
+                </div>
+            </div>
+            <div class="index-mode-card" data-index-mode="custom" onclick="setIndexMode('custom')">
+                <span class="index-mode-card__icon">🔄</span>
+                <div>
+                    <div class="index-mode-card__title">Cả hai (Load & Save)</div>
+                    <div class="index-mode-card__desc">Load từ A, lưu sang B</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Index Controls (conditional) -->
+        <div class="conditional" id="sub-save-index">
+            <div class="form-row form-row--single">
+                <div class="form-group">
+                    <div style="display:flex;align-items:center;margin-bottom:4px;">
+                        <label class="form-label" style="margin-bottom:0">Save Index Directory (--save-index) <span class="required">*</span></label>
+                        <button type="button" class="btn-auto-suggest" onclick="autoSuggestIndex('save')">⚡ Tự động tạo tên</button>
+                    </div>
+                    <div class="model-presets" id="save-index-presets">
+                        <span class="model-preset" onclick="selectIndexPreset('save', 'indexes/toy_bge')">indexes/toy_bge</span>
+                        <span class="model-preset" onclick="selectIndexPreset('save', 'indexes/fiqa_bge')">indexes/fiqa_bge</span>
+                        <span class="model-preset" onclick="selectIndexPreset('save', 'indexes/fiqa_dense')">indexes/fiqa_dense</span>
+                        <span class="model-preset" onclick="selectIndexPreset('save', 'indexes/custom_index')">indexes/custom_index</span>
+                    </div>
+                    <input type="text" class="form-input" id="input-save-index" placeholder="vd: indexes/fiqa_bge" oninput="generate()">
+                    <span class="form-hint">Sau khi build corpus embeddings, hệ thống sẽ lưu: index.faiss, doc_ids.json, config.json</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Load Index Controls (conditional) -->
+        <div class="conditional" id="sub-load-index">
+            <div class="form-row form-row--single">
+                <div class="form-group">
+                    <div style="display:flex;align-items:center;margin-bottom:4px;">
+                        <label class="form-label" style="margin-bottom:0">Load Index Directory (--load-index) <span class="required">*</span></label>
+                        <button type="button" class="btn-auto-suggest" onclick="autoSuggestIndex('load')">⚡ Tự động tạo tên</button>
+                    </div>
+                    <div class="model-presets" id="load-index-presets">
+                        <span class="model-preset" onclick="selectIndexPreset('load', 'indexes/toy_bge')">indexes/toy_bge</span>
+                        <span class="model-preset" onclick="selectIndexPreset('load', 'indexes/fiqa_bge')">indexes/fiqa_bge</span>
+                        <span class="model-preset" onclick="selectIndexPreset('load', 'indexes/fiqa_dense')">indexes/fiqa_dense</span>
+                        <span class="model-preset" onclick="selectIndexPreset('load', 'indexes/custom_index')">indexes/custom_index</span>
+                    </div>
+                    <input type="text" class="form-input" id="input-load-index" placeholder="vd: indexes/fiqa_bge" oninput="generate()">
+                    <span class="form-hint">Tải trực tiếp FAISS index đã lưu, bỏ qua bước encode/build corpus tốn thời gian</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Metrics -->
+    <section class="section" id="sec-metrics">
+        <div class="section__header">
+            <div class="section__icon section__icon--metrics">📊</div>
+            <div>
+                <div class="section__title">Metrics</div>
+                <div class="section__desc">Chọn các chỉ số đánh giá (chọn nhiều hoặc tự nhập)</div>
+            </div>
+        </div>
+        <div class="metric-builder" id="metric-builder">
+            <span class="metric-chip" data-metric="ndcg@10" onclick="toggleMetric(this)">NDCG@10</span>
+            <span class="metric-chip" data-metric="ndcg@5" onclick="toggleMetric(this)">NDCG@5</span>
+            <span class="metric-chip" data-metric="mrr@10" onclick="toggleMetric(this)">MRR@10</span>
+            <span class="metric-chip" data-metric="mrr@5" onclick="toggleMetric(this)">MRR@5</span>
+            <span class="metric-chip" data-metric="recall@10" onclick="toggleMetric(this)">Recall@10</span>
+            <span class="metric-chip" data-metric="recall@100" onclick="toggleMetric(this)">Recall@100</span>
+            <span class="metric-chip" data-metric="precision@10" onclick="toggleMetric(this)">P@10</span>
+            <span class="metric-chip" data-metric="precision@5" onclick="toggleMetric(this)">P@5</span>
+            <span class="metric-chip" data-metric="map@10" onclick="toggleMetric(this)">MAP@10</span>
+        </div>
+        <div class="metric-custom-row">
+            <input type="text" class="form-input" id="input-custom-metric" placeholder="Thêm metric tùy chỉnh (vd: ndcg@20)..." onkeydown="if(event.key==='Enter')addCustomMetric()">
+            <button class="btn-add-metric" onclick="addCustomMetric()">+ Thêm</button>
+        </div>
+    </section>
+
+    <!-- 6. Parameters -->
+    <section class="section" id="sec-params">
+        <div class="section__header">
+            <div class="section__icon section__icon--params">⚙️</div>
+            <div>
+                <div class="section__title">Parameters</div>
+                <div class="section__desc">Cấu hình tham số chạy</div>
+            </div>
+        </div>
+        <div class="form-row form-row--triple">
+            <div class="form-group">
+                <label class="form-label">Top-K <span class="required">*</span></label>
+                <input type="number" class="form-input" id="input-top-k" value="10" min="1" oninput="generate()">
+            </div>
+            <div class="form-group" id="group-batch-size">
+                <label class="form-label">Batch Size</label>
+                <input type="number" class="form-input" id="input-batch-size" value="32" min="1" oninput="generate()">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Seed</label>
+                <input type="number" class="form-input" id="input-seed" placeholder="Tùy chọn" oninput="generate()">
+            </div>
+        </div>
+        <div class="form-row" id="row-candidate-top-k">
+            <div class="form-group">
+                <label class="form-label">Candidate Top-K</label>
+                <input type="number" class="form-input" id="input-candidate-top-k-general" value="100" min="1" oninput="generate()">
+                <span class="form-hint">Dùng cho Hybrid retriever</span>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end">
+                <label class="checkbox-group">
+                    <input type="checkbox" id="input-verbose" onchange="generate()">
+                    <span class="checkbox-label">Verbose (debug logging)</span>
+                </label>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Output -->
+    <section class="section" id="sec-output-name">
+        <div class="section__header">
+            <div class="section__icon section__icon--output">💾</div>
+            <div>
+                <div class="section__title">Output</div>
+                <div class="section__desc">Đặt tên cho lượt chạy hoặc chỉ định thư mục xuất</div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Run Name</label>
+                <input type="text" class="form-input" id="input-run-name" placeholder="vd: fiqa_bm25_test" oninput="generate()">
+                <span class="form-hint">Lưu tại results/&lt;run_name&gt;/</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Output Path</label>
+                <input type="text" class="form-input" id="input-output" placeholder="Tùy chọn (ghi đè run-name)" oninput="generate()">
+                <span class="form-hint">Chỉ định thư mục xuất tùy ý</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Validation -->
+    <div class="validation-msg" id="validation-msg"></div>
+
+    <!-- Generated Command -->
+    <div class="output-section">
+        <div class="output-section__header">
+            <div class="output-section__title">Generated CLI Command</div>
+            <button class="btn-copy" id="btn-copy" onclick="copyCommand()">
+                <span id="copy-icon">📋</span>
+                <span id="copy-text">Copy</span>
+            </button>
+        </div>
+        <div class="output-code" id="output-code">
+            <span class="output-placeholder">← Chọn Retriever để bắt đầu tạo lệnh CLI...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== State =====
+let state = {
+    retriever: null,
+    metrics: new Set(),
+    indexMode: 'none',
+};
+
+// ===== Model Presets =====
+const MODEL_PRESETS = {
+    'dense': [
+        { id: 'BAAI/bge-base-en-v1.5', label: 'BGE Base EN' },
+        { id: 'BAAI/bge-large-en-v1.5', label: 'BGE Large EN' },
+        { id: 'BAAI/bge-small-en-v1.5', label: 'BGE Small EN' },
+        { id: 'sentence-transformers/all-MiniLM-L6-v2', label: 'MiniLM-L6' },
+        { id: 'sentence-transformers/all-mpnet-base-v2', label: 'MPNet Base' },
+        { id: 'sentence-transformers/LaBSE', label: 'LaBSE' },
+        { id: 'Alibaba-NLP/gte-base-en-v1.5', label: 'GTE Base EN' },
+        { id: 'intfloat/e5-base-v2', label: 'E5 Base' },
+    ],
+    'late-interaction': [
+        { id: 'colbert-ir/colbertv2.0', label: 'ColBERTv2' },
+        { id: 'jinaai/jina-colbert-v2', label: 'Jina ColBERT v2' },
+    ],
+    'cross-encoder': [
+        { id: 'BAAI/bge-reranker-v2-m3', label: 'BGE Reranker v2 M3' },
+        { id: 'BAAI/bge-reranker-large', label: 'BGE Reranker Large' },
+        { id: 'BAAI/bge-reranker-base', label: 'BGE Reranker Base' },
+        { id: 'cross-encoder/ms-marco-MiniLM-L-6-v2', label: 'MS MARCO MiniLM' },
+        { id: 'cross-encoder/ms-marco-MiniLM-L-12-v2', label: 'MS MARCO MiniLM L12' },
+    ],
+    'hybrid': [
+        { id: 'BAAI/bge-base-en-v1.5', label: 'BGE Base EN' },
+        { id: 'BAAI/bge-large-en-v1.5', label: 'BGE Large EN' },
+        { id: 'sentence-transformers/all-MiniLM-L6-v2', label: 'MiniLM-L6' },
+        { id: 'sentence-transformers/LaBSE', label: 'LaBSE' },
+        { id: 'intfloat/e5-base-v2', label: 'E5 Base' },
+    ],
+    'candidate-dense': [
+        { id: 'BAAI/bge-base-en-v1.5', label: 'BGE Base EN' },
+        { id: 'BAAI/bge-small-en-v1.5', label: 'BGE Small EN' },
+        { id: 'sentence-transformers/all-MiniLM-L6-v2', label: 'MiniLM-L6' },
+        { id: 'sentence-transformers/LaBSE', label: 'LaBSE' },
+    ],
+};
+
+const MODEL_TYPE_MAP = {
+    'dense': 'single-vector',
+    'late-interaction': 'multi-vector',
+    'cross-encoder': 'cross-encoder',
+    'hybrid': 'single-vector',
+};
+
+// ===== Retriever Selection =====
+function selectRetriever(type) {
+    state.retriever = type;
+
+    // Update cards
+    document.querySelectorAll('.retriever-card').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-retriever="${type}"]`).classList.add('active');
+
+    // Show/hide model and candidate sections
+    const secModel = document.getElementById('sec-model');
+    const secCandidate = document.getElementById('sec-candidate');
+    const secIndex = document.getElementById('sec-index');
+    const groupBatchSize = document.getElementById('group-batch-size');
+    const rowCandidateTopK = document.getElementById('row-candidate-top-k');
+
+    if (type === 'bm25') {
+        secModel.classList.remove('visible');
+        secCandidate.classList.remove('visible');
+        groupBatchSize.style.display = 'flex';
+        rowCandidateTopK.style.display = 'none';
+    } else {
+        secModel.classList.add('visible');
+        renderModelPresets(type);
+
+        if (type === 'cross-encoder') {
+            secCandidate.classList.add('visible');
+            groupBatchSize.style.display = 'none'; // batch sizes are in candidate section
+            rowCandidateTopK.style.display = 'none'; // candidate-top-k is in candidate section
+            renderCandidateModelPresets();
+        } else {
+            secCandidate.classList.remove('visible');
+            groupBatchSize.style.display = 'flex';
+            if (type === 'hybrid') {
+                rowCandidateTopK.style.display = 'grid';
+            } else {
+                rowCandidateTopK.style.display = 'none';
+            }
+        }
+    }
+
+    // Show/hide FAISS index section (applies to dense, hybrid, cross-encoder)
+    const supportsIndex = ['dense', 'hybrid', 'cross-encoder'].includes(type);
+    if (supportsIndex) {
+        secIndex.classList.add('visible');
+        updateIndexContextBanner();
+    } else {
+        secIndex.classList.remove('visible');
+    }
+
+    // Auto-set model type
+    const modelTypeSelect = document.getElementById('input-model-type');
+    if (MODEL_TYPE_MAP[type]) {
+        modelTypeSelect.value = MODEL_TYPE_MAP[type];
+    } else {
+        modelTypeSelect.value = '';
+    }
+
+    generate();
+}
+
+// ===== Model Presets =====
+function renderModelPresets(retrieverType) {
+    const container = document.getElementById('model-presets');
+    const presets = MODEL_PRESETS[retrieverType] || [];
+    container.innerHTML = presets.map(p =>
+        `<span class="model-preset" onclick="selectModel('${p.id}')">${p.label}</span>`
+    ).join('');
+}
+
+function renderCandidateModelPresets() {
+    const container = document.getElementById('candidate-model-presets');
+    const presets = MODEL_PRESETS['candidate-dense'] || [];
+    container.innerHTML = presets.map(p =>
+        `<span class="model-preset" onclick="selectCandidateModel('${p.id}')">${p.label}</span>`
+    ).join('');
+}
+
+function selectModel(id) {
+    document.getElementById('input-model').value = id;
+    // Highlight active preset
+    document.querySelectorAll('#model-presets .model-preset').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('#model-presets .model-preset').forEach(p => {
+        if (p.textContent === MODEL_PRESETS[state.retriever]?.find(m => m.id === id)?.label) {
+            p.classList.add('active');
+        }
+    });
+    generate();
+}
+
+function selectCandidateModel(id) {
+    document.getElementById('input-candidate-model').value = id;
+    document.querySelectorAll('#candidate-model-presets .model-preset').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('#candidate-model-presets .model-preset').forEach(p => {
+        if (p.textContent === MODEL_PRESETS['candidate-dense']?.find(m => m.id === id)?.label) {
+            p.classList.add('active');
+        }
+    });
+    generate();
+}
+
+function selectDataset(path) {
+    document.getElementById('input-dataset').value = path;
+    document.querySelectorAll('#dataset-presets .model-preset').forEach(p => {
+        p.classList.toggle('active', p.textContent === path);
+    });
+    generate();
+}
+
+// ===== Candidate Retriever Change =====
+function onCandidateRetrieverChange() {
+    const val = document.getElementById('input-candidate-retriever').value;
+    const secCandidateModel = document.getElementById('sec-candidate-model');
+    if (val === 'dense') {
+        secCandidateModel.classList.add('visible');
+    } else {
+        secCandidateModel.classList.remove('visible');
+    }
+    updateIndexContextBanner();
+}
+
+// ===== Index Persistence Functions =====
+function setIndexMode(mode) {
+    state.indexMode = mode;
+    document.querySelectorAll('.index-mode-card').forEach(c => {
+        c.classList.toggle('active', c.dataset.indexMode === mode);
+    });
+
+    const subSave = document.getElementById('sub-save-index');
+    const subLoad = document.getElementById('sub-load-index');
+
+    if (mode === 'save') {
+        subSave.classList.add('visible');
+        subLoad.classList.remove('visible');
+        if (!document.getElementById('input-save-index').value.trim()) {
+            autoSuggestIndex('save');
+        }
+    } else if (mode === 'load') {
+        subSave.classList.remove('visible');
+        subLoad.classList.add('visible');
+        if (!document.getElementById('input-load-index').value.trim()) {
+            autoSuggestIndex('load');
+        }
+    } else if (mode === 'custom') {
+        subSave.classList.add('visible');
+        subLoad.classList.add('visible');
+        if (!document.getElementById('input-save-index').value.trim()) autoSuggestIndex('save');
+        if (!document.getElementById('input-load-index').value.trim()) autoSuggestIndex('load');
+    } else {
+        subSave.classList.remove('visible');
+        subLoad.classList.remove('visible');
+    }
+
+    generate();
+}
+
+function selectIndexPreset(target, path) {
+    if (target === 'save') {
+        document.getElementById('input-save-index').value = path;
+        document.querySelectorAll('#save-index-presets .model-preset').forEach(p => {
+            p.classList.toggle('active', p.textContent === path);
+        });
+    } else if (target === 'load') {
+        document.getElementById('input-load-index').value = path;
+        document.querySelectorAll('#load-index-presets .model-preset').forEach(p => {
+            p.classList.toggle('active', p.textContent === path);
+        });
+    }
+    generate();
+}
+
+function autoSuggestIndex(target) {
+    const dataset = document.getElementById('input-dataset').value.trim() || 'corpus';
+    let dsName = 'corpus';
+    if (dataset.includes('toy')) dsName = 'toy';
+    else if (dataset.includes('fiqa-vn')) dsName = 'fiqa_vn';
+    else if (dataset.includes('fiqa')) dsName = 'fiqa';
+    else {
+        const parts = dataset.replace(/\/+$/, '').split('/');
+        dsName = parts[parts.length - 1] || 'corpus';
+    }
+
+    let modelTag = 'dense';
+    if (state.retriever === 'cross-encoder') {
+        const candModel = document.getElementById('input-candidate-model').value.trim();
+        if (candModel.includes('bge-base')) modelTag = 'candidate_bge';
+        else if (candModel.includes('bge-large')) modelTag = 'candidate_bge_large';
+        else if (candModel.includes('MiniLM')) modelTag = 'candidate_minilm';
+        else if (candModel) {
+            const mParts = candModel.split('/');
+            modelTag = 'candidate_' + (mParts[mParts.length - 1] || 'dense').replace(/[^a-zA-Z0-9_-]/g, '_');
+        } else {
+            modelTag = 'candidate_dense';
+        }
+    } else {
+        const model = document.getElementById('input-model').value.trim();
+        if (model.includes('bge-base')) modelTag = 'bge';
+        else if (model.includes('bge-large')) modelTag = 'bge_large';
+        else if (model.includes('bge-small')) modelTag = 'bge_small';
+        else if (model.includes('MiniLM')) modelTag = 'minilm';
+        else if (model.includes('LaBSE')) modelTag = 'labse';
+        else if (model) {
+            const mParts = model.split('/');
+            modelTag = (mParts[mParts.length - 1] || 'dense').replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+        if (state.retriever === 'hybrid') {
+            modelTag += '_hybrid';
+        }
+    }
+
+    const suggestedPath = `indexes/${dsName}_${modelTag}`;
+    if (target === 'save') {
+        document.getElementById('input-save-index').value = suggestedPath;
+        document.querySelectorAll('#save-index-presets .model-preset').forEach(p => {
+            p.classList.toggle('active', p.textContent === suggestedPath);
+        });
+    } else if (target === 'load') {
+        document.getElementById('input-load-index').value = suggestedPath;
+        document.querySelectorAll('#load-index-presets .model-preset').forEach(p => {
+            p.classList.toggle('active', p.textContent === suggestedPath);
+        });
+    }
+    generate();
+}
+
+function updateIndexContextBanner() {
+    const banner = document.getElementById('index-context-banner');
+    const icon = document.getElementById('index-banner-icon');
+    const text = document.getElementById('index-banner-text');
+    if (!banner || !icon || !text) return;
+
+    banner.classList.remove('warning');
+
+    if (state.retriever === 'dense') {
+        icon.textContent = '🧠';
+        text.innerHTML = '<strong>Dense Retriever:</strong> Quá trình build sẽ tạo FAISS index cho corpus embeddings. Lưu index bằng <code>--save-index</code> để dùng lại, hoặc dùng <code>--load-index</code> để bỏ qua hoàn toàn bước encoding.';
+    } else if (state.retriever === 'hybrid') {
+        icon.textContent = '⚡';
+        text.innerHTML = '<strong>Hybrid Retriever:</strong> Lưu/tải FAISS index áp dụng trực tiếp cho <strong>nhánh Dense</strong> trong Hybrid (nhánh BM25 được build cực nhanh từ documents mà không cần GPU/embedding).';
+    } else if (state.retriever === 'cross-encoder') {
+        const candRet = document.getElementById('input-candidate-retriever').value;
+        if (candRet === 'dense') {
+            icon.textContent = '🎯';
+            text.innerHTML = '<strong>Cross-Encoder (Stage 1 = Dense):</strong> Lưu/tải FAISS index áp dụng cho <strong>Stage 1 Candidate Retriever</strong>. Khi dùng <code>--load-index</code>, hệ thống bỏ qua bước encode corpus cho Stage 1.';
+        } else {
+            banner.classList.add('warning');
+            icon.textContent = '⚠️';
+            text.innerHTML = '<strong>Cross-Encoder (Stage 1 = BM25):</strong> FAISS offline index chỉ dành cho Dense retriever. Nếu bạn muốn lưu/load FAISS index cho Stage 1, hãy đổi <strong>Candidate Retriever</strong> ở trên thành <strong>Dense</strong>.';
+        }
+    }
+}
+
+// ===== Metrics =====
+function toggleMetric(chip) {
+    const metric = chip.dataset.metric;
+    if (state.metrics.has(metric)) {
+        state.metrics.delete(metric);
+        chip.classList.remove('active');
+    } else {
+        state.metrics.add(metric);
+        chip.classList.add('active');
+    }
+    generate();
+}
+
+function addCustomMetric() {
+    const input = document.getElementById('input-custom-metric');
+    const val = input.value.trim().toLowerCase();
+    if (!val) return;
+    if (!val.includes('@')) {
+        alert('Metric phải có dạng <tên>@<k>, ví dụ: ndcg@20');
+        return;
+    }
+    if (state.metrics.has(val)) {
+        input.value = '';
+        return;
+    }
+    state.metrics.add(val);
+
+    // Add chip
+    const builder = document.getElementById('metric-builder');
+    const chip = document.createElement('span');
+    chip.className = 'metric-chip active';
+    chip.dataset.metric = val;
+    chip.textContent = val.toUpperCase();
+    chip.onclick = function() { toggleMetric(this); };
+    builder.appendChild(chip);
+
+    input.value = '';
+    generate();
+}
+
+// ===== Generate Command =====
+function generate() {
+    const output = document.getElementById('output-code');
+    const validation = document.getElementById('validation-msg');
+    validation.classList.remove('visible');
+
+    if (!state.retriever) {
+        output.innerHTML = '<span class="output-placeholder">← Chọn Retriever để bắt đầu tạo lệnh CLI...</span>';
+        return;
+    }
+
+    // Gather values
+    const dataset = document.getElementById('input-dataset').value.trim();
+    const model = document.getElementById('input-model').value.trim();
+    const modelType = document.getElementById('input-model-type').value;
+    const device = document.getElementById('input-device').value;
+    const topK = document.getElementById('input-top-k').value;
+    const batchSize = document.getElementById('input-batch-size').value;
+    const seed = document.getElementById('input-seed').value.trim();
+    const runName = document.getElementById('input-run-name').value.trim();
+    const outputPath = document.getElementById('input-output').value.trim();
+    const verbose = document.getElementById('input-verbose').checked;
+
+    // Cross-encoder specific
+    const candidateRetriever = document.getElementById('input-candidate-retriever').value;
+    const candidateModel = document.getElementById('input-candidate-model').value.trim();
+    const candidateTopK = document.getElementById('input-candidate-top-k').value;
+    const batchSizeStage2 = document.getElementById('input-batch-size-stage2').value;
+    const candidateBatchSize = document.getElementById('input-candidate-batch-size').value.trim();
+
+    // Hybrid specific
+    const candidateTopKGeneral = document.getElementById('input-candidate-top-k-general').value;
+
+    // Validation
+    let errors = [];
+    if (!dataset) errors.push('Dataset path là bắt buộc.');
+    if (state.retriever !== 'bm25' && !model) errors.push('Model là bắt buộc cho retriever này.');
+    if (state.metrics.size === 0) errors.push('Chọn ít nhất 1 metric.');
+    if (state.retriever === 'cross-encoder' && candidateRetriever === 'dense' && !candidateModel) {
+        errors.push('Candidate Model là bắt buộc khi Stage 1 = Dense.');
+    }
+
+    // Index validation (for dense, hybrid, cross-encoder)
+    const supportsIndex = ['dense', 'hybrid', 'cross-encoder'].includes(state.retriever);
+    if (supportsIndex) {
+        const saveIndex = document.getElementById('input-save-index').value.trim();
+        const loadIndex = document.getElementById('input-load-index').value.trim();
+        if ((state.indexMode === 'save' || state.indexMode === 'custom') && !saveIndex) {
+            errors.push('Đường dẫn Save Index là bắt buộc khi chọn chế độ Lưu Index.');
+        }
+        if ((state.indexMode === 'load' || state.indexMode === 'custom') && !loadIndex) {
+            errors.push('Đường dẫn Load Index là bắt buộc khi chọn chế độ Tải Index.');
+        }
+    }
+
+    if (errors.length > 0) {
+        validation.textContent = errors.join(' ');
+        validation.classList.add('visible');
+        output.innerHTML = '<span class="output-placeholder">⚠ Vui lòng điền đầy đủ các trường bắt buộc...</span>';
+        return;
+    }
+
+    // Build command
+    let parts = ['python -m ir_system.cli.main'];
+
+    parts.push(`    --dataset ${dataset}`);
+
+    if (state.retriever !== 'bm25') {
+        parts.push(`    --model ${model}`);
+        if (modelType) {
+            parts.push(`    --model-type ${modelType}`);
+        }
+    }
+
+    parts.push(`    --retriever ${state.retriever}`);
+
+    // Cross-encoder specific args
+    if (state.retriever === 'cross-encoder') {
+        if (candidateRetriever !== 'bm25') {
+            parts.push(`    --candidate-retriever ${candidateRetriever}`);
+        }
+        if (candidateRetriever === 'dense' && candidateModel) {
+            parts.push(`    --candidate-model ${candidateModel}`);
+        }
+        if (candidateTopK && candidateTopK !== '100') {
+            parts.push(`    --candidate-top-k ${candidateTopK}`);
+        }
+        if (batchSizeStage2 && batchSizeStage2 !== '32') {
+            parts.push(`    --batch-size ${batchSizeStage2}`);
+        }
+        if (candidateBatchSize) {
+            parts.push(`    --candidate-batch-size ${candidateBatchSize}`);
+        }
+    } else {
+        // Non cross-encoder batch size
+        if (batchSize && batchSize !== '32') {
+            parts.push(`    --batch-size ${batchSize}`);
+        }
+        // Hybrid candidate-top-k
+        if (state.retriever === 'hybrid' && candidateTopKGeneral && candidateTopKGeneral !== '100') {
+            parts.push(`    --candidate-top-k ${candidateTopKGeneral}`);
+        }
+    }
+
+    // Index persistence args (for dense, hybrid, cross-encoder)
+    if (supportsIndex) {
+        const saveIndex = document.getElementById('input-save-index').value.trim();
+        const loadIndex = document.getElementById('input-load-index').value.trim();
+
+        if ((state.indexMode === 'save' || state.indexMode === 'custom') && saveIndex) {
+            parts.push(`    --save-index ${saveIndex}`);
+        }
+        if ((state.indexMode === 'load' || state.indexMode === 'custom') && loadIndex) {
+            parts.push(`    --load-index ${loadIndex}`);
+        }
+    }
+
+    parts.push(`    --top-k ${topK}`);
+    parts.push(`    --metrics ${[...state.metrics].join(' ')}`);
+
+    if (device !== 'auto') {
+        parts.push(`    --device ${device}`);
+    }
+    if (seed) {
+        parts.push(`    --seed ${seed}`);
+    }
+    if (runName) {
+        parts.push(`    --name ${runName}`);
+    }
+    if (outputPath) {
+        parts.push(`    --output ${outputPath}`);
+    }
+    if (verbose) {
+        parts.push(`    --verbose`);
+    }
+
+    const cmd = parts.join(' \\\n');
+    output.textContent = cmd;
+}
+
+// ===== Copy Command =====
+function copyCommand() {
+    const code = document.getElementById('output-code').textContent;
+    if (!code || code.includes('Chọn Retriever') || code.includes('Vui lòng')) return;
+
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('btn-copy');
+        const icon = document.getElementById('copy-icon');
+        const text = document.getElementById('copy-text');
+        btn.classList.add('copied');
+        icon.textContent = '✅';
+        text.textContent = 'Copied!';
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            icon.textContent = '📋';
+            text.textContent = 'Copy';
+        }, 2000);
+    });
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('row-candidate-top-k').style.display = 'none';
+});
+</script>
+</body>
+</html>
