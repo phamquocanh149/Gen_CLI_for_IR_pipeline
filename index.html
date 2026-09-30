@@ -778,6 +778,7 @@
             <span class="model-preset" onclick="selectDataset('data/fiqa/dev')">data/fiqa/dev</span>
             <span class="model-preset" onclick="selectDataset('data/fiqa/train')">data/fiqa/train</span>
             <span class="model-preset" onclick="selectDataset('data/fiqa-vn')">data/fiqa-vn</span>
+            <span class="model-preset" onclick="selectDataset('/kaggle/working/IR_pipeline/data/fiqa-vn')">kaggle: fiqa-vn</span>
         </div>
         <div class="form-row form-row--single">
             <div class="form-group">
@@ -990,41 +991,39 @@ let state = {
 };
 
 // ===== Model Presets =====
+const DENSE_MODELS = [
+    { id: 'intfloat/e5-large-v2', label: 'e5-large-v2' },
+    { id: 'intfloat/multilingual-e5-large', label: 'mul-e5-large' },
+    { id: 'intfloat/multilingual-e5-small', label: 'mul-e5-small' },
+    { id: 'intfloat/multilingual-e5-base', label: 'mul-e5-base' },
+    { id: 'BAAI/bge-m3', label: 'bge-m3' },
+    { id: 'sentence-transformers/all-MiniLM-L12-v2', label: 'all-MiniLM-L12-v2' },
+    { id: 'Snowflake/snowflake-arctic-embed-m-v2.0', label: 'Arctic-Embed-m-v2.0' },
+    { id: 'Snowflake/snowflake-arctic-embed-l-v2.0', label: 'Arctic-Embed-l-v2.0' },
+    { id: 'Qwen/Qwen3-Embedding-0.6B', label: 'Qwen3-Embed-0.6B' },
+    { id: 'Qwen/Qwen3-Embedding-4B', label: 'Qwen3-Embed-4B' },
+    { id: 'Qwen/Qwen3-Embedding-8B', label: 'Qwen3-Embed-8B' },
+];
+
+const CROSS_ENCODER_MODELS = [
+    { id: 'jinaai/jina-reranker-v3', label: 'jina-reranker-v3' },
+    { id: 'jinaai/jina-reranker-v3.5', label: 'jina-reranker-v3.5' },
+    { id: 'BAAI/bge-reranker-v2-m3', label: 'bge-reranker-v2-m3' },
+    { id: 'Qwen/Qwen3-Reranker-0.6B', label: 'Qwen3-Reranker-0.6B' },
+    { id: 'Qwen/Qwen3-Reranker-4B', label: 'Qwen3-Reranker-4B' },
+    { id: 'Qwen/Qwen3-Reranker-8B', label: 'Qwen3-Reranker-8B' },
+];
+
+const LATE_INTERACTION_MODELS = [
+    { id: 'colbert-ir/colbertv2.0', label: 'colbert_v2' },
+];
+
 const MODEL_PRESETS = {
-    'dense': [
-        { id: 'BAAI/bge-base-en-v1.5', label: 'BGE Base EN' },
-        { id: 'BAAI/bge-large-en-v1.5', label: 'BGE Large EN' },
-        { id: 'BAAI/bge-small-en-v1.5', label: 'BGE Small EN' },
-        { id: 'sentence-transformers/all-MiniLM-L6-v2', label: 'MiniLM-L6' },
-        { id: 'sentence-transformers/all-mpnet-base-v2', label: 'MPNet Base' },
-        { id: 'sentence-transformers/LaBSE', label: 'LaBSE' },
-        { id: 'Alibaba-NLP/gte-base-en-v1.5', label: 'GTE Base EN' },
-        { id: 'intfloat/e5-base-v2', label: 'E5 Base' },
-    ],
-    'late-interaction': [
-        { id: 'colbert-ir/colbertv2.0', label: 'ColBERTv2' },
-        { id: 'jinaai/jina-colbert-v2', label: 'Jina ColBERT v2' },
-    ],
-    'cross-encoder': [
-        { id: 'BAAI/bge-reranker-v2-m3', label: 'BGE Reranker v2 M3' },
-        { id: 'BAAI/bge-reranker-large', label: 'BGE Reranker Large' },
-        { id: 'BAAI/bge-reranker-base', label: 'BGE Reranker Base' },
-        { id: 'cross-encoder/ms-marco-MiniLM-L-6-v2', label: 'MS MARCO MiniLM' },
-        { id: 'cross-encoder/ms-marco-MiniLM-L-12-v2', label: 'MS MARCO MiniLM L12' },
-    ],
-    'hybrid': [
-        { id: 'BAAI/bge-base-en-v1.5', label: 'BGE Base EN' },
-        { id: 'BAAI/bge-large-en-v1.5', label: 'BGE Large EN' },
-        { id: 'sentence-transformers/all-MiniLM-L6-v2', label: 'MiniLM-L6' },
-        { id: 'sentence-transformers/LaBSE', label: 'LaBSE' },
-        { id: 'intfloat/e5-base-v2', label: 'E5 Base' },
-    ],
-    'candidate-dense': [
-        { id: 'BAAI/bge-base-en-v1.5', label: 'BGE Base EN' },
-        { id: 'BAAI/bge-small-en-v1.5', label: 'BGE Small EN' },
-        { id: 'sentence-transformers/all-MiniLM-L6-v2', label: 'MiniLM-L6' },
-        { id: 'sentence-transformers/LaBSE', label: 'LaBSE' },
-    ],
+    'dense': DENSE_MODELS,
+    'hybrid': DENSE_MODELS,
+    'candidate-dense': DENSE_MODELS,
+    'cross-encoder': CROSS_ENCODER_MODELS,
+    'late-interaction': LATE_INTERACTION_MODELS,
 };
 
 const MODEL_TYPE_MAP = {
@@ -1215,29 +1214,30 @@ function autoSuggestIndex(target) {
         dsName = parts[parts.length - 1] || 'corpus';
     }
 
+    function _getModelShort(m) {
+        if (!m) return 'dense';
+        if (m.includes('multilingual-e5-large')) return 'mul_e5_large';
+        if (m.includes('multilingual-e5-base')) return 'mul_e5_base';
+        if (m.includes('multilingual-e5-small')) return 'mul_e5_small';
+        if (m.includes('e5-large-v2')) return 'e5_large_v2';
+        if (m.includes('bge-m3')) return 'bge_m3';
+        if (m.includes('all-MiniLM-L12-v2')) return 'minilm_l12';
+        if (m.includes('snowflake-arctic-embed-m')) return 'arctic_m';
+        if (m.includes('snowflake-arctic-embed-l')) return 'arctic_l';
+        if (m.includes('Qwen3-Embedding-0.6B')) return 'qwen3_0_6b';
+        if (m.includes('Qwen3-Embedding-4B')) return 'qwen3_4b';
+        if (m.includes('Qwen3-Embedding-8B')) return 'qwen3_8b';
+        const parts = m.split('/');
+        return (parts[parts.length - 1] || 'dense').replace(/[^a-zA-Z0-9_-]/g, '_');
+    }
+
     let modelTag = 'dense';
     if (state.retriever === 'cross-encoder') {
         const candModel = document.getElementById('input-candidate-model').value.trim();
-        if (candModel.includes('bge-base')) modelTag = 'candidate_bge';
-        else if (candModel.includes('bge-large')) modelTag = 'candidate_bge_large';
-        else if (candModel.includes('MiniLM')) modelTag = 'candidate_minilm';
-        else if (candModel) {
-            const mParts = candModel.split('/');
-            modelTag = 'candidate_' + (mParts[mParts.length - 1] || 'dense').replace(/[^a-zA-Z0-9_-]/g, '_');
-        } else {
-            modelTag = 'candidate_dense';
-        }
+        modelTag = 'candidate_' + _getModelShort(candModel);
     } else {
         const model = document.getElementById('input-model').value.trim();
-        if (model.includes('bge-base')) modelTag = 'bge';
-        else if (model.includes('bge-large')) modelTag = 'bge_large';
-        else if (model.includes('bge-small')) modelTag = 'bge_small';
-        else if (model.includes('MiniLM')) modelTag = 'minilm';
-        else if (model.includes('LaBSE')) modelTag = 'labse';
-        else if (model) {
-            const mParts = model.split('/');
-            modelTag = (mParts[mParts.length - 1] || 'dense').replace(/[^a-zA-Z0-9_-]/g, '_');
-        }
+        modelTag = _getModelShort(model);
         if (state.retriever === 'hybrid') {
             modelTag += '_hybrid';
         }

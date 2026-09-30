@@ -13,14 +13,17 @@ Một công cụ trực quan (Web UI) độc lập giúp người dùng dễ dà
   - **Cross-Encoder** (2-Stage Reranking với Stage 1 tùy chọn BM25 hoặc Dense)
   - **Hybrid** (Kết hợp BM25 và Dense)
 - **Presets mô hình thông dụng**:
-  - Tích hợp sẵn các mô hình phổ biến (BGE, MiniLM, ColBERT, BGE-Reranker,...) hoặc nhập model ID tùy ý từ HuggingFace.
+  - **Dense / Hybrid / Candidate Dense**: `e5-large-v2`, `mul-e5-large`, `mul-e5-small`, `mul-e5-base`, `bge-m3`, `all-MiniLM-L12-v2`, `Arctic-Embed-m-v2.0`, `Arctic-Embed-l-v2.0`, `Qwen3-Embed-0.6B`, `Qwen3-Embed-4B`, `Qwen3-Embed-8B`.
+  - **Cross-Encoder**: `jina-reranker-v3`, `jina-reranker-v3.5`, `bge-reranker-v2-m3`, `Qwen3-Reranker-0.6B`, `Qwen3-Reranker-4B`, `Qwen3-Reranker-8B`.
+  - **Late Interaction**: `colbert_v2` (`colbert-ir/colbertv2.0`).
+  - Hoặc nhập bất kỳ HuggingFace model ID nào khác.
 - **Stage-specific Configuration**:
   - Tách biệt cấu hình `batch_size` và `candidate_top_k` cho từng stage (Stage 1 Candidate Retriever & Stage 2 Cross-Encoder Scoring).
 - **FAISS Index Persistence (Save / Load Offline)**:
   - Hỗ trợ lưu (`--save-index`) và tải (`--load-index`) FAISS vector index cho các retriever có sử dụng Dense: **Dense**, **Hybrid**, **Cross-Encoder (Stage 1 Dense)**.
   - Tự động gợi ý tên index thông minh theo Dataset và Model.
 - **Tùy chỉnh linh hoạt**:
-  - Chọn dataset mẫu (`data/toy`, `data/fiqa/test`,...) hoặc đường dẫn riêng.
+  - Chọn dataset mẫu (`data/toy`, `data/fiqa/test`, `data/fiqa-vn`) hoặc môi trường Kaggle (`/kaggle/working/IR_pipeline/data/fiqa-vn`), hoặc đường dẫn riêng.
   - Chọn các chỉ số đánh giá đa dạng: NDCG@k, MRR@k, Recall@k, Precision@k, MAP@k hoặc tự thêm metric tùy chỉnh.
   - Đặt tên lượt chạy (`--name`), output directory (`--output`), seed, verbose mode.
 - **Giao diện hiện đại & tiện lợi**:
