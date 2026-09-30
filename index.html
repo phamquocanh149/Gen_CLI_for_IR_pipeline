@@ -273,59 +273,233 @@
             font-style: italic;
         }
 
-        /* ===== Metric Chips ===== */
-        .metric-builder {
+        /* ===== Metrics Builder ===== */
+        .metric-type-chips {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
-        .metric-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 6px 14px;
+        .metric-type-chip {
+            padding: 8px 16px;
             background: var(--bg-input);
             border: 1.5px solid var(--border-color);
-            border-radius: 100px;
+            border-radius: var(--radius-sm);
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-secondary);
             cursor: pointer;
             transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
             user-select: none;
         }
-        .metric-chip:hover {
+        .metric-type-chip:hover {
             border-color: rgba(245,158,11,0.4);
             color: var(--text-primary);
         }
-        .metric-chip.active {
+        .metric-type-chip.active {
             border-color: var(--accent-amber);
-            background: rgba(245,158,11,0.1);
-            color: var(--accent-amber);
-        }
-        .metric-custom-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .metric-custom-row .form-input {
-            flex: 1;
-        }
-        .btn-add-metric {
-            padding: 10px 16px;
             background: rgba(245,158,11,0.12);
-            border: 1.5px solid rgba(245,158,11,0.3);
-            border-radius: var(--radius-sm);
             color: var(--accent-amber);
+            box-shadow: 0 0 15px rgba(245,158,11,0.15);
+        }
+
+        .metric-k-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: var(--bg-input);
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            margin-bottom: 14px;
+        }
+        .metric-k-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .metric-k-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .metric-k-btn {
+            padding: 5px 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .metric-k-btn:hover {
+            border-color: var(--accent-amber);
+            color: var(--text-primary);
+        }
+        .metric-k-btn.active {
+            background: var(--accent-amber);
+            border-color: var(--accent-amber);
+            color: #000;
+            font-weight: 700;
+        }
+        .metric-k-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .metric-k-input {
+            width: 75px;
+            padding: 6px 10px;
+            background: var(--bg-primary);
+            border: 1.5px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
             font-size: 13px;
             font-weight: 600;
+            text-align: center;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+        .metric-k-input:focus {
+            border-color: var(--accent-amber);
+        }
+        .btn-add-metric-action {
+            padding: 8px 18px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            border-radius: 6px;
+            color: #000;
+            font-size: 13px;
+            font-weight: 700;
             cursor: pointer;
             transition: all var(--transition);
             white-space: nowrap;
         }
-        .btn-add-metric:hover {
+        .btn-add-metric-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(245,158,11,0.3);
+        }
+
+        /* Metric Presets */
+        .metric-preset-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .metric-preset-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .metric-preset-chip {
+            padding: 4px 10px;
+            background: rgba(245,158,11,0.06);
+            border: 1px dashed rgba(245,158,11,0.3);
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #fcd34d;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .metric-preset-chip:hover {
+            background: rgba(245,158,11,0.15);
+            border-color: var(--accent-amber);
+        }
+
+        /* Selected Metrics Tags */
+        .selected-metrics-box {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+        }
+        .selected-metrics-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .selected-metrics-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-clear-metrics {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color var(--transition);
+        }
+        .btn-clear-metrics:hover {
+            color: var(--accent-rose);
+        }
+        .selected-metrics-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 32px;
+            align-items: center;
+        }
+        .selected-metric-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(245,158,11,0.12);
+            border: 1px solid rgba(245,158,11,0.35);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-amber);
+            font-family: 'JetBrains Mono', monospace;
+            animation: tagPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes tagPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .selected-metric-tag .btn-remove-tag {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
             background: rgba(245,158,11,0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all var(--transition);
+            color: var(--accent-amber);
+            border: none;
+            padding: 0;
+            line-height: 1;
+        }
+        .selected-metric-tag .btn-remove-tag:hover {
+            background: var(--accent-rose);
+            color: white;
+        }
+        .no-metrics-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
         }
 
         /* ===== Checkbox ===== */
@@ -632,9 +806,9 @@
 <div class="app">
     <!-- Header -->
     <header class="header">
-        <div class="header__badge">CLI Generator</div>
+        <div class="header__badge">CLI Generator • <a href="https://github.com/phamquocanh149/IR_pipeline" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">IR Pipeline Repo</a></div>
         <h1 class="header__title">IR Pipeline Command Builder</h1>
-        <p class="header__subtitle">Tạo lệnh CLI cho hệ thống Information Retrieval một cách trực quan — không cần nhớ cú pháp.</p>
+        <p class="header__subtitle">Tạo lệnh CLI trực quan cho hệ thống <a href="https://github.com/phamquocanh149/IR_pipeline" target="_blank" rel="noopener noreferrer" style="color: var(--accent-indigo-hover); font-weight: 600; text-decoration: none;">IR Pipeline</a> — Trải nghiệm online tại <a href="https://gencliforirpipeline.vercel.app/" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan); font-weight: 600; text-decoration: underline;">gencliforirpipeline.vercel.app</a></p>
     </header>
 
     <!-- 1. Retriever Selection -->
@@ -883,23 +1057,55 @@
             <div class="section__icon section__icon--metrics">📊</div>
             <div>
                 <div class="section__title">Metrics</div>
-                <div class="section__desc">Chọn các chỉ số đánh giá (chọn nhiều hoặc tự nhập)</div>
+                <div class="section__desc">Chọn loại metric và giá trị K (top-k) để thêm vào đánh giá</div>
             </div>
         </div>
-        <div class="metric-builder" id="metric-builder">
-            <span class="metric-chip" data-metric="ndcg@10" onclick="toggleMetric(this)">NDCG@10</span>
-            <span class="metric-chip" data-metric="ndcg@5" onclick="toggleMetric(this)">NDCG@5</span>
-            <span class="metric-chip" data-metric="mrr@10" onclick="toggleMetric(this)">MRR@10</span>
-            <span class="metric-chip" data-metric="mrr@5" onclick="toggleMetric(this)">MRR@5</span>
-            <span class="metric-chip" data-metric="recall@10" onclick="toggleMetric(this)">Recall@10</span>
-            <span class="metric-chip" data-metric="recall@100" onclick="toggleMetric(this)">Recall@100</span>
-            <span class="metric-chip" data-metric="precision@10" onclick="toggleMetric(this)">P@10</span>
-            <span class="metric-chip" data-metric="precision@5" onclick="toggleMetric(this)">P@5</span>
-            <span class="metric-chip" data-metric="map@10" onclick="toggleMetric(this)">MAP@10</span>
+
+        <!-- 1. Select Metric Type -->
+        <div class="form-label" style="margin-bottom: 8px;">1. Chọn Loại Metric</div>
+        <div class="metric-type-chips">
+            <span class="metric-type-chip active" data-type="ndcg" onclick="selectMetricType('ndcg')">⭐ NDCG</span>
+            <span class="metric-type-chip" data-type="mrr" onclick="selectMetricType('mrr')">🎯 MRR</span>
+            <span class="metric-type-chip" data-type="recall" onclick="selectMetricType('recall')">📦 Recall</span>
+            <span class="metric-type-chip" data-type="precision" onclick="selectMetricType('precision')">🔍 Precision</span>
+            <span class="metric-type-chip" data-type="map" onclick="selectMetricType('map')">📈 MAP</span>
         </div>
-        <div class="metric-custom-row">
-            <input type="text" class="form-input" id="input-custom-metric" placeholder="Thêm metric tùy chỉnh (vd: ndcg@20)..." onkeydown="if(event.key==='Enter')addCustomMetric()">
-            <button class="btn-add-metric" onclick="addCustomMetric()">+ Thêm</button>
+
+        <!-- 2. Select K & Add Button -->
+        <div class="metric-k-row">
+            <span class="metric-k-label">2. Chọn K (Top):</span>
+            <div class="metric-k-chips">
+                <button type="button" class="metric-k-btn" onclick="selectMetricK(1)">@1</button>
+                <button type="button" class="metric-k-btn" onclick="selectMetricK(3)">@3</button>
+                <button type="button" class="metric-k-btn" onclick="selectMetricK(5)">@5</button>
+                <button type="button" class="metric-k-btn active" onclick="selectMetricK(10)">@10</button>
+                <button type="button" class="metric-k-btn" onclick="selectMetricK(20)">@20</button>
+                <button type="button" class="metric-k-btn" onclick="selectMetricK(50)">@50</button>
+                <button type="button" class="metric-k-btn" onclick="selectMetricK(100)">@100</button>
+            </div>
+            <div class="metric-k-input-wrap">
+                <input type="number" class="metric-k-input" id="input-metric-k" value="10" min="1" oninput="onCustomKInput()" onkeydown="if(event.key==='Enter')addCurrentMetric()">
+                <button type="button" class="btn-add-metric-action" id="btn-add-metric-action" onclick="addCurrentMetric()">+ Thêm NDCG@10</button>
+            </div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="metric-preset-row">
+            <span class="metric-preset-label">Bộ gợi ý:</span>
+            <span class="metric-preset-chip" onclick="applyMetricPreset(['ndcg@10', 'mrr@10', 'recall@10'])">⚡ Bộ chuẩn @10 (NDCG, MRR, Recall)</span>
+            <span class="metric-preset-chip" onclick="applyMetricPreset(['ndcg@5', 'mrr@5', 'recall@5'])">⚡ Bộ chuẩn @5 (NDCG, MRR, Recall)</span>
+            <span class="metric-preset-chip" onclick="applyMetricPreset(['ndcg@10', 'mrr@10', 'recall@100', 'map@10'])">⚡ Đánh giá sâu (@10 + Recall@100)</span>
+        </div>
+
+        <!-- 3. Selected Metrics Tags -->
+        <div class="selected-metrics-box">
+            <div class="selected-metrics-header">
+                <span class="selected-metrics-title">Chỉ số đã chọn (<span id="selected-metrics-count">0</span>) <span class="required">*</span></span>
+                <button type="button" class="btn-clear-metrics" onclick="clearAllMetrics()">🗑️ Xóa tất cả</button>
+            </div>
+            <div class="selected-metrics-list" id="selected-metrics-list">
+                <span class="no-metrics-hint">Chưa chọn chỉ số nào. Hãy chọn loại metric và K ở trên để thêm.</span>
+            </div>
         </div>
     </section>
 
@@ -1285,44 +1491,112 @@ function updateIndexContextBanner() {
     }
 }
 
-// ===== Metrics =====
-function toggleMetric(chip) {
-    const metric = chip.dataset.metric;
-    if (state.metrics.has(metric)) {
-        state.metrics.delete(metric);
-        chip.classList.remove('active');
-    } else {
-        state.metrics.add(metric);
-        chip.classList.add('active');
+// ===== Metrics Builder =====
+let metricBuilderState = {
+    selectedType: 'ndcg',
+    k: 10,
+};
+
+function selectMetricType(type) {
+    metricBuilderState.selectedType = type;
+    document.querySelectorAll('.metric-type-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.type === type);
+    });
+    updateAddButtonText();
+}
+
+function selectMetricK(k) {
+    metricBuilderState.k = parseInt(k, 10);
+    const inputEl = document.getElementById('input-metric-k');
+    if (inputEl) inputEl.value = k;
+    document.querySelectorAll('.metric-k-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === `@${k}`);
+    });
+    updateAddButtonText();
+}
+
+function onCustomKInput() {
+    const inputEl = document.getElementById('input-metric-k');
+    const val = parseInt(inputEl ? inputEl.value : 0, 10);
+    if (!isNaN(val) && val > 0) {
+        metricBuilderState.k = val;
+        document.querySelectorAll('.metric-k-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.textContent === `@${val}`);
+        });
+        updateAddButtonText();
     }
+}
+
+function updateAddButtonText() {
+    const btn = document.getElementById('btn-add-metric-action');
+    if (!btn) return;
+    const typeUpper = metricBuilderState.selectedType.toUpperCase();
+    const k = metricBuilderState.k || 10;
+    const metricStr = `${metricBuilderState.selectedType}@${k}`;
+    if (state.metrics.has(metricStr)) {
+        btn.textContent = `✓ Đã có ${typeUpper}@${k}`;
+        btn.style.opacity = '0.75';
+    } else {
+        btn.textContent = `+ Thêm ${typeUpper}@${k}`;
+        btn.style.opacity = '1';
+    }
+}
+
+function addCurrentMetric() {
+    const inputEl = document.getElementById('input-metric-k');
+    const k = parseInt(inputEl ? inputEl.value : metricBuilderState.k, 10);
+    if (isNaN(k) || k <= 0) {
+        alert('Vui lòng nhập giá trị K hợp lệ (> 0)');
+        return;
+    }
+    const metricStr = `${metricBuilderState.selectedType}@${k}`;
+    if (state.metrics.has(metricStr)) return;
+
+    state.metrics.add(metricStr);
+    renderSelectedMetrics();
+    updateAddButtonText();
     generate();
 }
 
-function addCustomMetric() {
-    const input = document.getElementById('input-custom-metric');
-    const val = input.value.trim().toLowerCase();
-    if (!val) return;
-    if (!val.includes('@')) {
-        alert('Metric phải có dạng <tên>@<k>, ví dụ: ndcg@20');
-        return;
-    }
-    if (state.metrics.has(val)) {
-        input.value = '';
-        return;
-    }
-    state.metrics.add(val);
-
-    // Add chip
-    const builder = document.getElementById('metric-builder');
-    const chip = document.createElement('span');
-    chip.className = 'metric-chip active';
-    chip.dataset.metric = val;
-    chip.textContent = val.toUpperCase();
-    chip.onclick = function() { toggleMetric(this); };
-    builder.appendChild(chip);
-
-    input.value = '';
+function removeMetric(metricStr) {
+    state.metrics.delete(metricStr);
+    renderSelectedMetrics();
+    updateAddButtonText();
     generate();
+}
+
+function clearAllMetrics() {
+    state.metrics.clear();
+    renderSelectedMetrics();
+    updateAddButtonText();
+    generate();
+}
+
+function applyMetricPreset(presetList) {
+    presetList.forEach(m => state.metrics.add(m));
+    renderSelectedMetrics();
+    updateAddButtonText();
+    generate();
+}
+
+function renderSelectedMetrics() {
+    const listEl = document.getElementById('selected-metrics-list');
+    const countEl = document.getElementById('selected-metrics-count');
+    if (!listEl || !countEl) return;
+
+    countEl.textContent = state.metrics.size;
+    if (state.metrics.size === 0) {
+        listEl.innerHTML = '<span class="no-metrics-hint">Chưa chọn chỉ số nào. Hãy chọn loại metric và K ở trên để thêm.</span>';
+        return;
+    }
+
+    listEl.innerHTML = [...state.metrics].map(m => {
+        const [type, k] = m.split('@');
+        return `<span class="selected-metric-tag">
+            <span>${type.toUpperCase()}@${k}</span>
+            <button type="button" class="btn-remove-tag" onclick="removeMetric('${m}')" title="Xóa ${m}">×</button>
+        </span>`;
+    }).join('');
 }
 
 // ===== Generate Command =====
@@ -1488,6 +1762,7 @@ function copyCommand() {
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('row-candidate-top-k').style.display = 'none';
+    applyMetricPreset(['ndcg@10', 'mrr@10', 'recall@10']);
 });
 </script>
 </body>

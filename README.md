@@ -1,11 +1,18 @@
 # Gen CLI for IR Pipeline 🚀
 
-Một công cụ trực quan (Web UI) độc lập giúp người dùng dễ dàng tạo câu lệnh CLI cho hệ thống **Information Retrieval (IR) Pipeline** mà không cần nhớ cú pháp phức tạp.
+Một công cụ trực quan (Web UI) độc lập giúp người dùng dễ dàng tạo câu lệnh CLI cho hệ thống **[IR Pipeline](https://github.com/phamquocanh149/IR_pipeline)** mà không cần nhớ cú pháp phức tạp.
+
+🌐 **Trải nghiệm Online trực tiếp:** [https://gencliforirpipeline.vercel.app/](https://gencliforirpipeline.vercel.app/)  
+🔗 **Mã nguồn hệ thống IR Pipeline chính:** [https://github.com/phamquocanh149/IR_pipeline](https://github.com/phamquocanh149/IR_pipeline)
 
 ---
 
 ## 🌟 Tính năng chính
 
+- **Bộ chọn Metrics linh hoạt & thông minh**:
+  - Tự do chọn loại metric (**NDCG**, **MRR**, **Recall**, **Precision**, **MAP**) và chọn chính xác giá trị K (top-k) mong muốn (ví dụ: `@1`, `@3`, `@5`, `@10`, `@20`, `@50`, `@100` hoặc tự nhập bất kỳ số nào) ➔ Thêm ngay metric dạng `NDCG@5`, `Recall@100`, v.v.
+  - Hỗ trợ các bộ gợi ý nhanh (Bộ chuẩn @10, Bộ chuẩn @5, Đánh giá sâu).
+  - Quản lý danh sách metric đã chọn trực quan với nút gỡ bỏ `×` từng metric hoặc xóa tất cả.
 - **Hỗ trợ đa dạng Retriever**:
   - **BM25** (Sparse Retrieval)
   - **Dense** (Single-Vector Embedding)
@@ -24,7 +31,6 @@ Một công cụ trực quan (Web UI) độc lập giúp người dùng dễ dà
   - Tự động gợi ý tên index thông minh theo Dataset và Model.
 - **Tùy chỉnh linh hoạt**:
   - Chọn dataset mẫu (`data/toy`, `data/fiqa/test`, `data/fiqa-vn`) hoặc môi trường Kaggle (`/kaggle/working/IR_pipeline/data/fiqa-vn`), hoặc đường dẫn riêng.
-  - Chọn các chỉ số đánh giá đa dạng: NDCG@k, MRR@k, Recall@k, Precision@k, MAP@k hoặc tự thêm metric tùy chỉnh.
   - Đặt tên lượt chạy (`--name`), output directory (`--output`), seed, verbose mode.
 - **Giao diện hiện đại & tiện lợi**:
   - Dark-mode, responsive, trực quan.
