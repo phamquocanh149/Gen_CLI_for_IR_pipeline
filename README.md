@@ -31,9 +31,10 @@ Một công cụ trực quan (Web UI) độc lập giúp người dùng dễ dà
   - Hoặc nhập bất kỳ HuggingFace model ID nào khác.
 - **Stage-specific Configuration**:
   - Tách biệt cấu hình `batch_size` và `candidate_top_k` cho từng stage (Stage 1 Candidate Retriever & Stage 2 Cross-Encoder Scoring).
-- **FAISS Index Persistence (Save / Load Offline)**:
-  - Hỗ trợ lưu (`--save-index`) và tải (`--load-index`) FAISS vector index cho các retriever có sử dụng Dense: **Dense**, **Hybrid**, **Cross-Encoder (Stage 1 Dense)**.
-  - Tự động gợi ý tên index thông minh theo Dataset và Model.
+- **FAISS Index**:
+  - Dense, Hybrid và Cross-Encoder (Stage 1 Dense) luôn tự lưu index vào `indexes/<hash>/` và search bằng FAISS; không cần option lưu.
+  - Chọn **Tải Index** để thêm `--load-index`, nhập đường dẫn index có thật từ log lần build trước, đúng model và corpus/ngôn ngữ documents.
+  - Không tự đoán đường dẫn index; BM25 và Late Interaction không tạo option FAISS.
 - **Tùy chỉnh linh hoạt**:
   - Chọn dataset mẫu (`data/toy`, `data/fiqa/test`, `data/fiqa-vn`) hoặc môi trường Kaggle (`/kaggle/working/IR_pipeline/data/fiqa-vn`), hoặc đường dẫn riêng.
   - Đặt tên lượt chạy (`--name`), output directory (`--output`), seed, verbose mode.

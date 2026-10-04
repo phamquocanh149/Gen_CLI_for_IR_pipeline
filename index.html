@@ -1112,7 +1112,7 @@
             <div class="section__icon section__icon--index">🗄️</div>
             <div>
                 <div class="section__title">FAISS Index Persistence</div>
-                <div class="section__desc">Lưu hoặc tải index FAISS offline — tăng tốc đáng kể, không cần encode lại corpus</div>
+                <div class="section__desc">Dense luôn lưu và search bằng FAISS; tải index có sẵn để bỏ qua encode corpus</div>
             </div>
         </div>
 
@@ -1124,18 +1124,11 @@
 
         <!-- Mode Selection Cards -->
         <div class="index-mode-grid">
-            <div class="index-mode-card active" data-index-mode="none" onclick="setIndexMode('none')">
-                <span class="index-mode-card__icon">🚫</span>
-                <div>
-                    <div class="index-mode-card__title">Không lưu/load</div>
-                    <div class="index-mode-card__desc">Build mới mỗi lần chạy</div>
-                </div>
-            </div>
-            <div class="index-mode-card" data-index-mode="save" onclick="setIndexMode('save')">
+            <div class="index-mode-card active" data-index-mode="build" onclick="setIndexMode('build')">
                 <span class="index-mode-card__icon">💾</span>
                 <div>
-                    <div class="index-mode-card__title">Lưu Index (--save-index)</div>
-                    <div class="index-mode-card__desc">Lưu FAISS sau khi build</div>
+                    <div class="index-mode-card__title">Build và tự động lưu</div>
+                    <div class="index-mode-card__desc">Lưu bắt buộc vào indexes/&lt;hash&gt;/</div>
                 </div>
             </div>
             <div class="index-mode-card" data-index-mode="load" onclick="setIndexMode('load')">
@@ -1143,33 +1136,6 @@
                 <div>
                     <div class="index-mode-card__title">Tải Index (--load-index)</div>
                     <div class="index-mode-card__desc">Dùng lại index có sẵn</div>
-                </div>
-            </div>
-            <div class="index-mode-card" data-index-mode="custom" onclick="setIndexMode('custom')">
-                <span class="index-mode-card__icon">🔄</span>
-                <div>
-                    <div class="index-mode-card__title">Cả hai (Load & Save)</div>
-                    <div class="index-mode-card__desc">Load từ A, lưu sang B</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Save Index Controls (conditional) -->
-        <div class="conditional" id="sub-save-index">
-            <div class="form-row form-row--single">
-                <div class="form-group">
-                    <div style="display:flex;align-items:center;margin-bottom:4px;">
-                        <label class="form-label" style="margin-bottom:0">Save Index Directory (--save-index) <span class="required">*</span></label>
-                        <button type="button" class="btn-auto-suggest" onclick="autoSuggestIndex('save')">⚡ Tự động tạo tên</button>
-                    </div>
-                    <div class="model-presets" id="save-index-presets">
-                        <span class="model-preset" onclick="selectIndexPreset('save', 'indexes/toy_bge')">indexes/toy_bge</span>
-                        <span class="model-preset" onclick="selectIndexPreset('save', 'indexes/fiqa_bge')">indexes/fiqa_bge</span>
-                        <span class="model-preset" onclick="selectIndexPreset('save', 'indexes/fiqa_dense')">indexes/fiqa_dense</span>
-                        <span class="model-preset" onclick="selectIndexPreset('save', 'indexes/custom_index')">indexes/custom_index</span>
-                    </div>
-                    <input type="text" class="form-input" id="input-save-index" placeholder="vd: indexes/fiqa_bge" oninput="generate()">
-                    <span class="form-hint">Sau khi build corpus embeddings, hệ thống sẽ lưu: index.faiss, doc_ids.json, config.json</span>
                 </div>
             </div>
         </div>
@@ -1180,16 +1146,9 @@
                 <div class="form-group">
                     <div style="display:flex;align-items:center;margin-bottom:4px;">
                         <label class="form-label" style="margin-bottom:0">Load Index Directory (--load-index) <span class="required">*</span></label>
-                        <button type="button" class="btn-auto-suggest" onclick="autoSuggestIndex('load')">⚡ Tự động tạo tên</button>
                     </div>
-                    <div class="model-presets" id="load-index-presets">
-                        <span class="model-preset" onclick="selectIndexPreset('load', 'indexes/toy_bge')">indexes/toy_bge</span>
-                        <span class="model-preset" onclick="selectIndexPreset('load', 'indexes/fiqa_bge')">indexes/fiqa_bge</span>
-                        <span class="model-preset" onclick="selectIndexPreset('load', 'indexes/fiqa_dense')">indexes/fiqa_dense</span>
-                        <span class="model-preset" onclick="selectIndexPreset('load', 'indexes/custom_index')">indexes/custom_index</span>
-                    </div>
-                    <input type="text" class="form-input" id="input-load-index" placeholder="vd: indexes/fiqa_bge" oninput="generate()">
-                    <span class="form-hint">Tải trực tiếp FAISS index đã lưu, bỏ qua bước encode/build corpus tốn thời gian</span>
+                    <input type="text" class="form-input" id="input-load-index" placeholder="indexes/&lt;hash&gt;" oninput="generate()">
+                    <span class="form-hint">Nhập đường dẫn index có thật từ log lần build trước, đúng model và corpus (kể cả ngôn ngữ documents).</span>
                 </div>
             </div>
         </div>
@@ -1337,7 +1296,7 @@
 let state = {
     retriever: null,
     metrics: new Set(),
-    indexMode: 'none',
+    indexMode: 'build',
     datasetMode: 'multilingual',   // 'multilingual' (mặc định) | 'legacy'
     queriesLang: new Set(['all']),
     docsLang: new Set(['all']),
@@ -1586,105 +1545,18 @@ function setIndexMode(mode) {
         c.classList.toggle('active', c.dataset.indexMode === mode);
     });
 
-    const subSave = document.getElementById('sub-save-index');
-    const subLoad = document.getElementById('sub-load-index');
-
-    if (mode === 'save') {
-        subSave.classList.add('visible');
-        subLoad.classList.remove('visible');
-        if (!document.getElementById('input-save-index').value.trim()) {
-            autoSuggestIndex('save');
-        }
-    } else if (mode === 'load') {
-        subSave.classList.remove('visible');
-        subLoad.classList.add('visible');
-        if (!document.getElementById('input-load-index').value.trim()) {
-            autoSuggestIndex('load');
-        }
-    } else if (mode === 'custom') {
-        subSave.classList.add('visible');
-        subLoad.classList.add('visible');
-        if (!document.getElementById('input-save-index').value.trim()) autoSuggestIndex('save');
-        if (!document.getElementById('input-load-index').value.trim()) autoSuggestIndex('load');
-    } else {
-        subSave.classList.remove('visible');
-        subLoad.classList.remove('visible');
-    }
-
+    document.getElementById('sub-load-index').classList.toggle('visible', mode === 'load');
     generate();
 }
 
-function selectIndexPreset(target, path) {
-    if (target === 'save') {
-        document.getElementById('input-save-index').value = path;
-        document.querySelectorAll('#save-index-presets .model-preset').forEach(p => {
-            p.classList.toggle('active', p.textContent === path);
-        });
-    } else if (target === 'load') {
-        document.getElementById('input-load-index').value = path;
-        document.querySelectorAll('#load-index-presets .model-preset').forEach(p => {
-            p.classList.toggle('active', p.textContent === path);
-        });
-    }
-    generate();
-}
-
-function autoSuggestIndex(target) {
-    const dataset = document.getElementById('input-dataset').value.trim() || 'corpus';
-    let dsName = 'corpus';
-    if (dataset.includes('toy')) dsName = 'toy';
-    else if (dataset.includes('fiqa-vn')) dsName = 'fiqa_vn';
-    else if (dataset.includes('fiqa')) dsName = 'fiqa';
-    else {
-        const parts = dataset.replace(/\/+$/, '').split('/');
-        dsName = parts[parts.length - 1] || 'corpus';
-    }
-
-    function _getModelShort(m) {
-        if (!m) return 'dense';
-        if (m.includes('multilingual-e5-large')) return 'mul_e5_large';
-        if (m.includes('multilingual-e5-base')) return 'mul_e5_base';
-        if (m.includes('multilingual-e5-small')) return 'mul_e5_small';
-        if (m.includes('e5-large-v2')) return 'e5_large_v2';
-        if (m.includes('bge-m3')) return 'bge_m3';
-        if (m.includes('all-MiniLM-L12-v2')) return 'minilm_l12';
-        if (m.includes('snowflake-arctic-embed-m')) return 'arctic_m';
-        if (m.includes('snowflake-arctic-embed-l')) return 'arctic_l';
-        if (m.includes('Qwen3-Embedding-0.6B')) return 'qwen3_0_6b';
-        if (m.includes('Qwen3-Embedding-4B')) return 'qwen3_4b';
-        if (m.includes('Qwen3-Embedding-8B')) return 'qwen3_8b';
-        const parts = m.split('/');
-        return (parts[parts.length - 1] || 'dense').replace(/[^a-zA-Z0-9_-]/g, '_');
-    }
-
-    let modelTag = 'dense';
-    if (state.retriever === 'cross-encoder') {
-        const candModel = document.getElementById('input-candidate-model').value.trim();
-        modelTag = 'candidate_' + _getModelShort(candModel);
-    } else {
-        const model = document.getElementById('input-model').value.trim();
-        modelTag = _getModelShort(model);
-        if (state.retriever === 'hybrid') {
-            modelTag += '_hybrid';
-        }
-    }
-
-    const suggestedPath = `indexes/${dsName}_${modelTag}`;
-    if (target === 'save') {
-        document.getElementById('input-save-index').value = suggestedPath;
-        document.querySelectorAll('#save-index-presets .model-preset').forEach(p => {
-            p.classList.toggle('active', p.textContent === suggestedPath);
-        });
-    } else if (target === 'load') {
-        document.getElementById('input-load-index').value = suggestedPath;
-        document.querySelectorAll('#load-index-presets .model-preset').forEach(p => {
-            p.classList.toggle('active', p.textContent === suggestedPath);
-        });
-    }
-    generate();
+function supportsDenseIndex() {
+    return ['dense', 'hybrid'].includes(state.retriever)
+        || (state.retriever === 'cross-encoder'
+            && document.getElementById('input-candidate-retriever').value === 'dense');
 }
 
 function updateIndexContextBanner() {
+    document.getElementById('sec-index').classList.toggle('visible', supportsDenseIndex());
     const banner = document.getElementById('index-context-banner');
     const icon = document.getElementById('index-banner-icon');
     const text = document.getElementById('index-banner-text');
@@ -1694,15 +1566,15 @@ function updateIndexContextBanner() {
 
     if (state.retriever === 'dense') {
         icon.textContent = '🧠';
-        text.innerHTML = '<strong>Dense Retriever:</strong> Quá trình build sẽ tạo FAISS index cho corpus embeddings. Lưu index bằng <code>--save-index</code> để dùng lại, hoặc dùng <code>--load-index</code> để bỏ qua hoàn toàn bước encoding.';
+        text.innerHTML = '<strong>Dense Retriever:</strong> Build tự động lưu index vào <code>indexes/&lt;hash&gt;/</code> và search bằng FAISS. Dùng <code>--load-index</code> để bỏ qua encode corpus.';
     } else if (state.retriever === 'hybrid') {
         icon.textContent = '⚡';
-        text.innerHTML = '<strong>Hybrid Retriever:</strong> Lưu/tải FAISS index áp dụng trực tiếp cho <strong>nhánh Dense</strong> trong Hybrid (nhánh BM25 được build cực nhanh từ documents mà không cần GPU/embedding).';
+        text.innerHTML = '<strong>Hybrid Retriever:</strong> FAISS tự động lưu và search, áp dụng trực tiếp cho <strong>nhánh Dense</strong> trong Hybrid (nhánh BM25 được build cực nhanh từ documents mà không cần GPU/embedding).';
     } else if (state.retriever === 'cross-encoder') {
         const candRet = document.getElementById('input-candidate-retriever').value;
         if (candRet === 'dense') {
             icon.textContent = '🎯';
-            text.innerHTML = '<strong>Cross-Encoder (Stage 1 = Dense):</strong> Lưu/tải FAISS index áp dụng cho <strong>Stage 1 Candidate Retriever</strong>. Khi dùng <code>--load-index</code>, hệ thống bỏ qua bước encode corpus cho Stage 1.';
+            text.innerHTML = '<strong>Cross-Encoder (Stage 1 = Dense):</strong> FAISS tự động lưu và search, áp dụng cho <strong>Stage 1 Candidate Retriever</strong>. Khi dùng <code>--load-index</code>, hệ thống bỏ qua bước encode corpus cho Stage 1.';
         } else {
             banner.classList.add('warning');
             icon.textContent = '⚠️';
@@ -1863,16 +1735,10 @@ function generate() {
     }
 
     // Index validation (for dense, hybrid, cross-encoder)
-    const supportsIndex = ['dense', 'hybrid', 'cross-encoder'].includes(state.retriever);
-    if (supportsIndex) {
-        const saveIndex = document.getElementById('input-save-index').value.trim();
-        const loadIndex = document.getElementById('input-load-index').value.trim();
-        if ((state.indexMode === 'save' || state.indexMode === 'custom') && !saveIndex) {
-            errors.push('Đường dẫn Save Index là bắt buộc khi chọn chế độ Lưu Index.');
-        }
-        if ((state.indexMode === 'load' || state.indexMode === 'custom') && !loadIndex) {
-            errors.push('Đường dẫn Load Index là bắt buộc khi chọn chế độ Tải Index.');
-        }
+    const supportsIndex = supportsDenseIndex();
+    const loadIndex = document.getElementById('input-load-index').value.trim();
+    if (supportsIndex && state.indexMode === 'load' && !loadIndex) {
+        errors.push('Nhập đường dẫn index đã lưu khi chọn Tải Index.');
     }
 
     if (errors.length > 0) {
@@ -1942,17 +1808,8 @@ function generate() {
         }
     }
 
-    // Index persistence args (for dense, hybrid, cross-encoder)
-    if (supportsIndex) {
-        const saveIndex = document.getElementById('input-save-index').value.trim();
-        const loadIndex = document.getElementById('input-load-index').value.trim();
-
-        if ((state.indexMode === 'save' || state.indexMode === 'custom') && saveIndex) {
-            parts.push(`    --save-index ${saveIndex}`);
-        }
-        if ((state.indexMode === 'load' || state.indexMode === 'custom') && loadIndex) {
-            parts.push(`    --load-index ${loadIndex}`);
-        }
+    if (supportsIndex && state.indexMode === 'load') {
+        parts.push(`    --load-index "${loadIndex}"`);
     }
 
     parts.push(`    --top-k ${topK}`);
