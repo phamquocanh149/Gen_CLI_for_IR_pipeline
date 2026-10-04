@@ -19,6 +19,11 @@ Một công cụ trực quan (Web UI) độc lập giúp người dùng dễ dà
   - **Late Interaction** (ColBERT Multi-Vector)
   - **Cross-Encoder** (2-Stage Reranking với Stage 1 tùy chọn BM25 hoặc Dense)
   - **Hybrid** (Kết hợp BM25 và Dense)
+- **Hỗ trợ Đa ngữ & Cross-Lingual Retrieval**:
+  - Tùy chọn tập ngôn ngữ cho Queries (`--queries vi en csw all`) và Documents (`--documents vi en all`).
+  - Hỗ trợ chạy cross-lingual evaluation (lên tới 6 cặp chéo: 3 queries × 2 documents, vd: `queries_viXdocs_en`).
+  - Hiển thị trực quan số lượt truy vấn chéo và cặp ngôn ngữ tương ứng ngay trên giao diện.
+  - Tương thích cả layout đa ngữ (`queries.vi.jsonl`, `documents.en.jsonl`,...) và layout đơn ngữ cũ (`queries.jsonl`, `documents.jsonl`).
 - **Presets mô hình thông dụng**:
   - **Dense / Hybrid / Candidate Dense**: `e5-large-v2`, `mul-e5-large`, `mul-e5-small`, `mul-e5-base`, `bge-m3`, `all-MiniLM-L12-v2`, `Arctic-Embed-m-v2.0`, `Arctic-Embed-l-v2.0`, `Qwen3-Embed-0.6B`, `Qwen3-Embed-4B`, `Qwen3-Embed-8B`.
   - **Cross-Encoder**: `jina-reranker-v3`, `jina-reranker-v3.5`, `bge-reranker-v2-m3`, `Qwen3-Reranker-0.6B`, `Qwen3-Reranker-4B`, `Qwen3-Reranker-8B`.

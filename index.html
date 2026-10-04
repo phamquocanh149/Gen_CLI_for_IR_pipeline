@@ -149,6 +149,7 @@
         .section__icon--output { background: rgba(244,63,94,0.15); }
         .section__icon--candidate { background: rgba(251,146,60,0.15); }
         .section__icon--index { background: rgba(6,182,212,0.15); }
+        .section__icon--lang { background: rgba(20,184,166,0.15); }
 
         .section__title {
             font-size: 16px;
@@ -785,6 +786,93 @@
             color: #a5f3fc;
         }
 
+        /* ===== Language Chips ===== */
+        .lang-chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .lang-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+            user-select: none;
+        }
+        .lang-chip:hover {
+            border-color: rgba(20,184,166,0.4);
+            color: var(--text-primary);
+        }
+        .lang-chip.active {
+            border-color: #14b8a6;
+            background: rgba(20,184,166,0.12);
+            color: #2dd4bf;
+            box-shadow: 0 0 14px rgba(20,184,166,0.15);
+        }
+        .lang-chip.all-chip.active {
+            border-color: #6366f1;
+            background: rgba(99,102,241,0.12);
+            color: #818cf8;
+            box-shadow: 0 0 14px rgba(99,102,241,0.15);
+        }
+        .lang-section-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .lang-pair-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 10px 14px;
+            background: rgba(20,184,166,0.06);
+            border: 1px solid rgba(20,184,166,0.2);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            color: #5eead4;
+            margin-top: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .lang-pair-preview strong {
+            color: #2dd4bf;
+            font-size: 13px;
+        }
+        .dataset-mode-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .dataset-mode-btn {
+            padding: 6px 14px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border-color);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .dataset-mode-btn:hover { color: var(--text-primary); border-color: rgba(16,185,129,0.4); }
+        .dataset-mode-btn.active {
+            border-color: var(--accent-emerald);
+            background: rgba(16,185,129,0.1);
+            color: var(--accent-emerald);
+        }
+
         /* ===== Responsive ===== */
         @media (max-width: 640px) {
             .app { padding: 24px 16px 60px; }
@@ -943,22 +1031,78 @@
             <div class="section__icon section__icon--dataset">📂</div>
             <div>
                 <div class="section__title">Dataset</div>
-                <div class="section__desc">Đường dẫn đến thư mục chứa queries.jsonl, documents.jsonl, qrels.tsv</div>
+                <div class="section__desc" id="dataset-desc">Đường dẫn đến thư mục chứa dữ liệu — hỗ trợ cả layout đơn ngữ (queries.jsonl) và đa ngữ (queries.vi/en/csw.jsonl)</div>
             </div>
         </div>
-        <div class="model-presets" id="dataset-presets">
-            <span class="model-preset" onclick="selectDataset('data/toy')">data/toy</span>
-            <span class="model-preset" onclick="selectDataset('data/fiqa/test')">data/fiqa/test</span>
-            <span class="model-preset" onclick="selectDataset('data/fiqa/dev')">data/fiqa/dev</span>
-            <span class="model-preset" onclick="selectDataset('data/fiqa/train')">data/fiqa/train</span>
-            <span class="model-preset" onclick="selectDataset('data/fiqa-vn')">data/fiqa-vn</span>
-            <span class="model-preset" onclick="selectDataset('/kaggle/working/IR_pipeline/data/fiqa-vn')">kaggle: fiqa-vn</span>
+
+        <!-- Dataset Layout Mode Toggle -->
+        <div class="dataset-mode-toggle">
+            <button class="dataset-mode-btn active" id="mode-btn-multilingual" onclick="setDatasetMode('multilingual')">🌐 Đa ngữ (vi/en/csw)</button>
+            <button class="dataset-mode-btn" id="mode-btn-legacy" onclick="setDatasetMode('legacy')">📄 Đơn ngữ (legacy)</button>
         </div>
+
+        <!-- Presets: Multilingual (default) -->
+        <div id="dataset-presets-multilingual">
+            <div class="model-presets">
+                <span class="model-preset" onclick="selectDataset('data/toy-ml')">data/toy-ml</span>
+                <span class="model-preset" onclick="selectDataset('data/fiqa-ml')">data/fiqa-ml</span>
+                <span class="model-preset" onclick="selectDataset('/kaggle/working/IR_pipeline/data/fiqa-ml')">kaggle: fiqa-ml</span>
+            </div>
+        </div>
+
+        <!-- Presets: Legacy -->
+        <div id="dataset-presets-legacy" style="display:none">
+            <div class="model-presets" id="dataset-presets">
+                <span class="model-preset" onclick="selectDataset('data/toy')">data/toy</span>
+                <span class="model-preset" onclick="selectDataset('data/fiqa/test')">data/fiqa/test</span>
+                <span class="model-preset" onclick="selectDataset('data/fiqa/dev')">data/fiqa/dev</span>
+                <span class="model-preset" onclick="selectDataset('data/fiqa/train')">data/fiqa/train</span>
+                <span class="model-preset" onclick="selectDataset('data/fiqa-vn')">data/fiqa-vn</span>
+                <span class="model-preset" onclick="selectDataset('/kaggle/working/IR_pipeline/data/fiqa-vn')">kaggle: fiqa-vn</span>
+            </div>
+        </div>
+
         <div class="form-row form-row--single">
             <div class="form-group">
                 <label class="form-label">Dataset Path <span class="required">*</span></label>
-                <input type="text" class="form-input" id="input-dataset" placeholder="vd: data/fiqa/test" oninput="generate()">
+                <input type="text" class="form-input" id="input-dataset" placeholder="vd: data/toy-ml hoặc data/fiqa-ml" oninput="generate()">
             </div>
+        </div>
+    </section>
+
+    <!-- 3b. Language Selection (multilingual mode) -->
+    <section class="section conditional visible" id="sec-lang">
+        <div class="section__header">
+            <div class="section__icon section__icon--lang">🌐</div>
+            <div>
+                <div class="section__title">Ngôn ngữ Queries &amp; Documents</div>
+                <div class="section__desc">Chọn các phiên bản ngôn ngữ để chạy cross-lingual retrieval — sinh tham số <code>--queries</code> và <code>--documents</code></div>
+            </div>
+        </div>
+
+        <!-- Queries Lang -->
+        <div class="lang-section-label">📝 Queries Language (<code style="font-size:11px;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#a5f3fc;">--queries</code>)</div>
+        <div class="lang-chip-group" id="queries-lang-chips">
+            <span class="lang-chip all-chip active" data-lang="all" onclick="toggleLangChip('queries', 'all')">🌐 all (tất cả: vi, en, csw)</span>
+            <span class="lang-chip" data-lang="vi" onclick="toggleLangChip('queries', 'vi')">🇻🇳 vi</span>
+            <span class="lang-chip" data-lang="en" onclick="toggleLangChip('queries', 'en')">🇬🇧 en</span>
+            <span class="lang-chip" data-lang="csw" onclick="toggleLangChip('queries', 'csw')">🔀 csw (code-switch)</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Docs Lang -->
+        <div class="lang-section-label">📚 Documents Language (<code style="font-size:11px;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#a5f3fc;">--documents</code>)</div>
+        <div class="lang-chip-group" id="docs-lang-chips">
+            <span class="lang-chip all-chip active" data-lang="all" onclick="toggleLangChip('docs', 'all')">🌐 all (tất cả: vi, en)</span>
+            <span class="lang-chip" data-lang="vi" onclick="toggleLangChip('docs', 'vi')">🇻🇳 vi</span>
+            <span class="lang-chip" data-lang="en" onclick="toggleLangChip('docs', 'en')">🇬🇧 en</span>
+        </div>
+
+        <!-- Preview cross pairs -->
+        <div class="lang-pair-preview" id="lang-pair-preview">
+            <strong id="lang-pair-count">6</strong> lượt truy vấn chéo sẽ được chạy
+            <span id="lang-pair-detail" style="color:var(--text-muted);">— (vi, en, csw) × (vi, en)</span>
         </div>
     </section>
 
@@ -1194,7 +1338,83 @@ let state = {
     retriever: null,
     metrics: new Set(),
     indexMode: 'none',
+    datasetMode: 'multilingual',   // 'multilingual' (mặc định) | 'legacy'
+    queriesLang: new Set(['all']),
+    docsLang: new Set(['all']),
 };
+
+// ===== Language constants =====
+const QUERIES_LANGS = ['vi', 'en', 'csw'];
+const DOCS_LANGS = ['vi', 'en'];
+
+function _effectiveLangs(group) {
+    const s = group === 'queries' ? state.queriesLang : state.docsLang;
+    const supported = group === 'queries' ? QUERIES_LANGS : DOCS_LANGS;
+    if (s.has('all')) return supported;
+    return supported.filter(l => s.has(l));
+}
+
+function _crossPairCount() {
+    return _effectiveLangs('queries').length * _effectiveLangs('docs').length;
+}
+
+// ===== Dataset Mode =====
+function setDatasetMode(mode) {
+    state.datasetMode = mode;
+    // toggle mode buttons
+    document.getElementById('mode-btn-legacy').classList.toggle('active', mode === 'legacy');
+    document.getElementById('mode-btn-multilingual').classList.toggle('active', mode === 'multilingual');
+    // toggle presets
+    document.getElementById('dataset-presets-legacy').style.display = mode === 'legacy' ? '' : 'none';
+    document.getElementById('dataset-presets-multilingual').style.display = mode === 'multilingual' ? '' : 'none';
+    // show/hide lang section
+    document.getElementById('sec-lang').classList.toggle('visible', mode === 'multilingual');
+    generate();
+}
+
+// ===== Lang Chip Toggle =====
+function toggleLangChip(group, lang) {
+    const s = group === 'queries' ? state.queriesLang : state.docsLang;
+    const supported = group === 'queries' ? QUERIES_LANGS : DOCS_LANGS;
+    const containerId = group === 'queries' ? 'queries-lang-chips' : 'docs-lang-chips';
+
+    if (lang === 'all') {
+        s.clear();
+        s.add('all');
+    } else {
+        s.delete('all');
+        if (s.has(lang)) {
+            s.delete(lang);
+            if (s.size === 0) s.add('all'); // fallback to all when nothing selected
+        } else {
+            s.add(lang);
+            // If all langs selected, convert to 'all'
+            if (supported.every(l => s.has(l))) { s.clear(); s.add('all'); }
+        }
+    }
+
+    // Re-render chip states
+    document.querySelectorAll(`#${containerId} .lang-chip`).forEach(chip => {
+        const l = chip.dataset.lang;
+        if (l === 'all') {
+            chip.classList.toggle('active', s.has('all'));
+        } else {
+            chip.classList.toggle('active', !s.has('all') && s.has(l));
+        }
+    });
+
+    _updateLangPairPreview();
+    generate();
+}
+
+function _updateLangPairPreview() {
+    const qLangs = _effectiveLangs('queries');
+    const dLangs = _effectiveLangs('docs');
+    const count = qLangs.length * dLangs.length;
+    document.getElementById('lang-pair-count').textContent = count;
+    document.getElementById('lang-pair-detail').textContent =
+        `— (${qLangs.join(', ')}) × (${dLangs.join(', ')})`;
+}
 
 // ===== Model Presets =====
 const DENSE_MODELS = [
@@ -1341,7 +1561,7 @@ function selectCandidateModel(id) {
 
 function selectDataset(path) {
     document.getElementById('input-dataset').value = path;
-    document.querySelectorAll('#dataset-presets .model-preset').forEach(p => {
+    document.querySelectorAll('.model-preset').forEach(p => {
         p.classList.toggle('active', p.textContent === path);
     });
     generate();
@@ -1612,6 +1832,7 @@ function generate() {
 
     // Gather values
     const dataset = document.getElementById('input-dataset').value.trim();
+    const isMultilingual = state.datasetMode === 'multilingual';
     const model = document.getElementById('input-model').value.trim();
     const modelType = document.getElementById('input-model-type').value;
     const device = document.getElementById('input-device').value;
@@ -1665,6 +1886,24 @@ function generate() {
     let parts = ['python -m ir_system.cli.main'];
 
     parts.push(`    --dataset ${dataset}`);
+
+    // Multilingual lang args (--queries / --documents)
+    if (isMultilingual) {
+        const qLangs = _effectiveLangs('queries');
+        const dLangs = _effectiveLangs('docs');
+        const qIsAll = state.queriesLang.has('all');
+        const dIsAll = state.docsLang.has('all');
+        if (!qIsAll) {
+            parts.push(`    --queries ${qLangs.join(' ')}`);
+        } else {
+            parts.push(`    --queries all`);
+        }
+        if (!dIsAll) {
+            parts.push(`    --documents ${dLangs.join(' ')}`);
+        } else {
+            parts.push(`    --documents all`);
+        }
+    }
 
     if (state.retriever !== 'bm25') {
         parts.push(`    --model ${model}`);
@@ -1763,6 +2002,7 @@ function copyCommand() {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('row-candidate-top-k').style.display = 'none';
     applyMetricPreset(['ndcg@10', 'mrr@10', 'recall@10']);
+    _updateLangPairPreview();
 });
 </script>
 </body>
