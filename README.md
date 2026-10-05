@@ -61,6 +61,31 @@ Sau đó truy cập: [http://localhost:8000](http://localhost:8000)
 
 ---
 
+## ColBERT: chấm điểm late-interaction trên GPU
+
+Chọn **Late Interaction**, model `colbert-ir/colbertv2.0`, Model Type
+`multi-vector` và Device `cuda` để encode và chấm điểm trên GPU.
+Phần Parameters hiển thị thêm:
+
+| Trường | Tham số CLI | Mặc định |
+|---|---|---|
+| MaxSim Device | `--colbert-scoring-device` | `auto` (theo model) |
+| Documents / scoring block | `--colbert-score-batch-size` | `128` |
+| Queries / scoring group | `--colbert-query-batch-size` | `8` |
+| Đối chiếu điểm GPU với NumPy | `--colbert-verify-scores` | Tắt |
+
+Batch Size thông thường (`--batch-size`) chỉ điều khiển encode documents.
+Query group dùng lại dữ liệu documents trên GPU; encode query vẫn batch 1.
+Giảm kích thước batch encode hoặc khối documents nếu thiếu VRAM.
+
+MaxSim vẫn chấm toàn bộ corpus. Chế độ đối chiếu kiểm tra từng điểm GPU và
+trả điểm NumPy gốc, nên chậm hơn. GPU thông thường có thể khác thứ hạng ở các
+điểm rất sát nhau. Chọn MaxSim Device `cpu` để dùng cách chấm NumPy cũ;
+các tùy chọn khối GPU và đối chiếu chỉ có tác dụng khi MaxSim chạy trên CUDA.
+
+Các cờ ColBERT chỉ được sinh khi chọn Late Interaction. Cần cập nhật repo
+IR Pipeline lên commit `0433ed3` hoặc mới hơn để sử dụng các cờ này.
+
 ## 📋 Cấu trúc thư mục
 
 ```text

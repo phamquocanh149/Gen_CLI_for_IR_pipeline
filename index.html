@@ -1235,6 +1235,33 @@
                 <input type="number" class="form-input" id="input-seed" placeholder="Tùy chọn" oninput="generate()">
             </div>
         </div>
+        <div id="group-colbert-scoring" hidden>
+            <div class="form-row form-row--triple">
+                <div class="form-group">
+                    <label class="form-label" for="input-colbert-scoring-device">MaxSim Device</label>
+                    <select class="form-select" id="input-colbert-scoring-device" onchange="generate()">
+                        <option value="auto">Auto — theo device của model</option>
+                        <option value="cuda">CUDA — chấm điểm trên GPU</option>
+                        <option value="cpu">CPU — NumPy như bản cũ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="input-colbert-score-batch-size">Documents / scoring block</label>
+                    <input type="number" class="form-input" id="input-colbert-score-batch-size" value="128" min="1" step="1" oninput="generate()">
+                    <span class="form-hint">Số documents mỗi khối GPU. Giảm nếu thiếu VRAM.</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="input-colbert-query-batch-size">Queries / scoring group</label>
+                    <input type="number" class="form-input" id="input-colbert-query-batch-size" value="8" min="1" step="1" oninput="generate()">
+                    <span class="form-hint">Dùng lại khối documents cho nhiều queries; encode query vẫn batch 1.</span>
+                </div>
+            </div>
+            <label class="checkbox-group">
+                <input type="checkbox" id="input-colbert-verify-scores" onchange="generate()">
+                <span class="checkbox-label">Đối chiếu điểm GPU với NumPy (chậm hơn)</span>
+            </label>
+            <p class="form-hint">Batch Size phía trên chỉ dùng để encode documents. MaxSim vẫn chấm toàn bộ corpus. Chế độ đối chiếu trả điểm NumPy gốc; GPU thông thường có thể đổi thứ hạng khi điểm rất sát nhau. Các tùy chọn khối GPU và đối chiếu chỉ có tác dụng khi MaxSim chạy trên CUDA.</p>
+        </div>
         <div class="form-row" id="row-candidate-top-k">
             <div class="form-group">
                 <label class="form-label">Candidate Top-K</label>
@@ -1432,6 +1459,7 @@ function selectRetriever(type) {
     const secIndex = document.getElementById('sec-index');
     const groupBatchSize = document.getElementById('group-batch-size');
     const rowCandidateTopK = document.getElementById('row-candidate-top-k');
+    document.getElementById('group-colbert-scoring').hidden = type !== 'late-interaction';
 
     if (type === 'bm25') {
         secModel.classList.remove('visible');
@@ -1710,6 +1738,10 @@ function generate() {
     const device = document.getElementById('input-device').value;
     const topK = document.getElementById('input-top-k').value;
     const batchSize = document.getElementById('input-batch-size').value;
+    const colbertScoringDevice = document.getElementById('input-colbert-scoring-device').value;
+    const colbertScoreBatchSize = document.getElementById('input-colbert-score-batch-size').value;
+    const colbertQueryBatchSize = document.getElementById('input-colbert-query-batch-size').value;
+    const colbertVerifyScores = document.getElementById('input-colbert-verify-scores').checked;
     const seed = document.getElementById('input-seed').value.trim();
     const runName = document.getElementById('input-run-name').value.trim();
     const outputPath = document.getElementById('input-output').value.trim();
@@ -1735,6 +1767,20 @@ function generate() {
     }
 
     // Index validation (for dense, hybrid, cross-encoder)
+    if (state.retriever === 'late-interaction') {
+        for (const [label, value] of [
+            ['Batch Size', batchSize],
+            ['Documents / scoring block', colbertScoreBatchSize],
+            ['Queries / scoring group', colbertQueryBatchSize],
+        ]) {
+            if (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1) {
+                errors.push(`${label} phải là số nguyên dương.`);
+            }
+        }
+        if (modelType !== 'multi-vector') {
+            errors.push('Late Interaction cần Model Type = multi-vector.');
+        }
+    }
     const supportsIndex = supportsDenseIndex();
     const loadIndex = document.getElementById('input-load-index').value.trim();
     if (supportsIndex && state.indexMode === 'load' && !loadIndex) {
@@ -1806,6 +1852,13 @@ function generate() {
         if (state.retriever === 'hybrid' && candidateTopKGeneral && candidateTopKGeneral !== '100') {
             parts.push(`    --candidate-top-k ${candidateTopKGeneral}`);
         }
+    }
+
+    if (state.retriever === 'late-interaction') {
+        parts.push(`    --colbert-scoring-device ${colbertScoringDevice}`);
+        parts.push(`    --colbert-score-batch-size ${colbertScoreBatchSize}`);
+        parts.push(`    --colbert-query-batch-size ${colbertQueryBatchSize}`);
+        if (colbertVerifyScores) parts.push('    --colbert-verify-scores');
     }
 
     if (supportsIndex && state.indexMode === 'load') {
